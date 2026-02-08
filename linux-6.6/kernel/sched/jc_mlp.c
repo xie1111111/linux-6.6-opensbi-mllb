@@ -16,8 +16,15 @@
 
 // 添加全局变量记录forward_pass的统计信息
 static atomic64_t forward_pass_count = ATOMIC64_INIT(0);
-static atomic64_t forward_pass_total_time_ns = ATOMIC64_INIT(0);
+static atomic64_t forward_pass_total_cycle = ATOMIC64_INIT(0);
 
+static inline unsigned long long rdcycle_read(void) {
+    unsigned long long cycles;
+    
+    // 直接使用rdcycle指令
+    asm volatile ("rdcycle %0" : "=r" (cycles));
+    return cycles;
+}
 #define NR_FEAT     15
 #define ftod(F)     ftodtype(F)
 
@@ -220,8 +227,8 @@ int jc_mlp_main(struct jc_lb_data *data)
     dtype *input;
     //dtype input[NR_FEAT];
     dtype delta_faults;
-    ktime_t start_time, end_time;
-    s64 elapsed_time_ns;
+    unsigned long long start_cycle, end_cycle;
+    unsigned long long elapsed_cycle;
 
     // 1. 动态分配 input（内核线性地址，GFP_ATOMIC 适合内核态非中断上下文）
     // 每个调用分配一块独立内存，无共享
@@ -253,33 +260,33 @@ int jc_mlp_main(struct jc_lb_data *data)
     input[13] = itodtype(data->extra_fails);
     input[14] = itodtype(data->buddy_hot);
 
-    // 记录开始时间
-    start_time = ktime_get_ns();
+    // 记录开始CPU周期数
+    start_cycle = rdcycle_read(); 
     
     // 调用forward_pass
     output = forward_pass(input);
 
-    // 记录结束时间并计算耗时
-    end_time = ktime_get_ns();
-    elapsed_time_ns = end_time - start_time;
+    // 记录结束CPU周期数并计算运行所需周期数
+    end_cycle = rdcycle_read();;
+    elapsed_cycle = end_cycle - start_cycle;
     
     kfree(input);
 
     // 更新统计信息
     atomic64_inc(&forward_pass_count);
-    atomic64_add(elapsed_time_ns, &forward_pass_total_time_ns);
+    atomic64_add(elapsed_cycle, &forward_pass_total_cycle);
     
     // 每1000次打印统计，然后重置数据（避免值过大）
     if (atomic64_read(&forward_pass_count) % 1000 == 0) {
         // 原子交换：读取当前值，并将原子变量重置为 0（无锁安全）
         u64 total_count = atomic64_xchg(&forward_pass_count, 0);
-        u64 total_time = atomic64_xchg(&forward_pass_total_time_ns, 0);
+        u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
 
         // 这里判断 total_count 是否为 1000（避免多核并发时，多次触发打印）
         if (total_count == 1000) {
             printk(KERN_INFO "=== jc_mlp (scheduler context, OpenSBI enabled) ===\n");
-            printk(KERN_INFO "Latest 1000 executions: Average time: %llu ns\n",
-                   total_time / total_count);
+            printk(KERN_INFO "Latest 1000 executions: Average cycle: %llu cycle\n",
+                   total_cycle / total_count);
             printk(KERN_INFO "===================================================\n");
         }
     }
@@ -293,8 +300,8 @@ int jc_mlp_main(struct jc_lb_data *data)
     dtype *input;
     //dtype input[NR_FEAT];
     dtype delta_faults;
-    ktime_t start_time, end_time;
-    s64 elapsed_time_ns;
+    unsigned long long start_cycle, end_cycle;
+    unsigned long long elapsed_cycle;
 
     // 1. 动态分配 input（内核线性地址，GFP_ATOMIC 适合内核态非中断上下文）
     // 每个调用分配一块独立内存，无共享
@@ -327,31 +334,31 @@ int jc_mlp_main(struct jc_lb_data *data)
     input[14] = (dtype)data->buddy_hot;
 
     // 记录开始时间
-    start_time = ktime_get_ns();
+    start_cycle = rdcycle_read();
     
     // 调用forward_pass
     output = forward_pass(input);
 
     // 记录结束时间并计算耗时
-    end_time = ktime_get_ns();
-    elapsed_time_ns = end_time - start_time;
+    end_cycle = rdcycle_read();
+    elapsed_cycle = end_cycle - start_cycle;
 
     kfree(input);
     // 更新统计信息
     atomic64_inc(&forward_pass_count);
-    atomic64_add(elapsed_time_ns, &forward_pass_total_time_ns);
+    atomic64_add(elapsed_cycle, &forward_pass_total_cycle);
     
     // 每1000次打印统计，然后重置数据（避免值过大）
     if (atomic64_read(&forward_pass_count) % 1000 == 0) {
         // 原子交换：读取当前值，并将原子变量重置为 0（无锁安全）
         u64 total_count = atomic64_xchg(&forward_pass_count, 0);
-        u64 total_time = atomic64_xchg(&forward_pass_total_time_ns, 0);
+        u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
 
         // 这里判断 total_count 是否为 1000（避免多核并发时，多次触发打印）
         if (total_count == 1000) {
             printk(KERN_INFO "=== jc_mlp (scheduler context, OpenSBI enabled) ===\n");
-            printk(KERN_INFO "Latest 1000 executions: Average time: %llu ns\n",
-                   total_time / total_count);
+            printk(KERN_INFO "Latest 1000 executions: Average cycle: %llu cycle\n",
+                   total_cycle / total_count);
             printk(KERN_INFO "===================================================\n");
         }
     }

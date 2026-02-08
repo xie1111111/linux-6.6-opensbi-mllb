@@ -466,6 +466,7 @@ CONFIG_JC_SCHED=y
 # CONFIG_JC_SCHED_TOGGLE is not set
 CONFIG_JC_SCHED_REPLACE=y
 # CONFIG_JC_SCHED_TEST is not set
+CONFIG_JC_SCHED_FXDPT=y
 # CONFIG_JC_SCHED_PERF is not set
 # end of Sched Experiment
 
@@ -5036,4 +5037,3 @@ CONFIG_MEMTEST=y
 #
 # end of Rust hacking
 # end of Kernel hacking
-CONFIG_JC_SCHED_FXDPT=y

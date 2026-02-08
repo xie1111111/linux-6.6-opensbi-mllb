@@ -2,4 +2,47 @@
 !linux-6.6/
 !opensbi/
 !.gitignore
-!opensbi-mle/
+# 编译生成的文件
+*.o
+*.ko
+*.mod.c
+*.mod.o
+*.cmd
+.*.cmd
+modules.order
+Module.symvers
+.tmp_versions/
+
+# 目标文件和可执行文件
+vmlinux
+System.map
+*.elf
+*.bin
+*.img
+
+# 配置和临时文件
+.config
+.config.old
+*.orig
+*.rej
+*.patch
+*.swp
+*~
+.*.swp
+.DS_Store
+
+# 构建目录
+build/
+dist/
+output/
+out/
+__pycache__/
+*.pyc
+
+# 文档生成
+*.pdf
+*.html
+*.aux
+*.log
+*.out
+*.toc
