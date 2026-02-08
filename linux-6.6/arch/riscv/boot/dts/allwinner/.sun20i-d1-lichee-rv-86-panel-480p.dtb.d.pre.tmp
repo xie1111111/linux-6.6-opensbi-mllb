@@ -1,0 +1,20 @@
+sun20i-d1-lichee-rv-86-panel-480p.o: \
+ arch/riscv/boot/dts/allwinner/sun20i-d1-lichee-rv-86-panel-480p.dts \
+ arch/riscv/boot/dts/allwinner/sun20i-d1-lichee-rv-86-panel.dtsi \
+ arch/riscv/boot/dts/allwinner/sun20i-d1-lichee-rv.dts \
+ scripts/dtc/include-prefixes/dt-bindings/gpio/gpio.h \
+ scripts/dtc/include-prefixes/dt-bindings/leds/common.h \
+ arch/riscv/boot/dts/allwinner/sun20i-d1.dtsi \
+ arch/riscv/boot/dts/allwinner/sun20i-d1s.dtsi \
+ arch/riscv/boot/dts/allwinner/sunxi-d1s-t113.dtsi \
+ scripts/dtc/include-prefixes/dt-bindings/clock/sun6i-rtc.h \
+ scripts/dtc/include-prefixes/dt-bindings/clock/sun8i-de2.h \
+ scripts/dtc/include-prefixes/dt-bindings/clock/sun8i-tcon-top.h \
+ scripts/dtc/include-prefixes/dt-bindings/clock/sun20i-d1-ccu.h \
+ scripts/dtc/include-prefixes/dt-bindings/clock/sun20i-d1-r-ccu.h \
+ scripts/dtc/include-prefixes/dt-bindings/interrupt-controller/irq.h \
+ scripts/dtc/include-prefixes/dt-bindings/reset/sun8i-de2.h \
+ scripts/dtc/include-prefixes/dt-bindings/reset/sun20i-d1-ccu.h \
+ scripts/dtc/include-prefixes/dt-bindings/reset/sun20i-d1-r-ccu.h \
+ arch/riscv/boot/dts/allwinner/sunxi-d1-t113.dtsi \
+ arch/riscv/boot/dts/allwinner/sun20i-common-regulators.dtsi

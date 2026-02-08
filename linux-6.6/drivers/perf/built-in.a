@@ -1,0 +1,8 @@
+!<thin>
+//                                              50        `
+riscv_pmu.o/
+riscv_pmu_legacy.o/
+riscv_pmu_sbi.o/
+/0              0           0     0     644     22080     `
+/13             0           0     0     644     7240      `
+/33             0           0     0     644     37624     `

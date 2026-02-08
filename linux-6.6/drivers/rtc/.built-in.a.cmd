@@ -1,0 +1,1 @@
+savedcmd_drivers/rtc/built-in.a := rm -f drivers/rtc/built-in.a;  printf "drivers/rtc/%s " lib.o class.o interface.o nvmem.o dev.o proc.o sysfs.o rtc-goldfish.o rtc-sun6i.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/rtc/built-in.a

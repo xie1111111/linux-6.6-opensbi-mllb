@@ -1,0 +1,1 @@
+savedcmd_drivers/pinctrl/starfive/built-in.a := rm -f drivers/pinctrl/starfive/built-in.a;  printf "drivers/pinctrl/starfive/%s " pinctrl-starfive-jh7100.o pinctrl-starfive-jh7110.o pinctrl-starfive-jh7110-sys.o pinctrl-starfive-jh7110-aon.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/pinctrl/starfive/built-in.a

@@ -1,0 +1,12 @@
+!<thin>
+//                                              74        `
+rpmsg_core.o/
+rpmsg_char.o/
+rpmsg_ctrl.o/
+rpmsg_ns.o/
+virtio_rpmsg_bus.o/
+/0              0           0     0     644     29144     `
+/14             0           0     0     644     27160     `
+/28             0           0     0     644     12968     `
+/42             0           0     0     644     8864      `
+/54             0           0     0     644     35016     `

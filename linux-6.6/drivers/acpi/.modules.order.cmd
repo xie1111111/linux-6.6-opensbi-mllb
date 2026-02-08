@@ -1,0 +1,1 @@
+savedcmd_drivers/acpi/modules.order := {   cat drivers/acpi/acpica/modules.order;   cat drivers/acpi/pmic/modules.order;   cat drivers/acpi/dptf/modules.order;   cat drivers/acpi/riscv/modules.order;   echo drivers/acpi/video.o; :; } > drivers/acpi/modules.order

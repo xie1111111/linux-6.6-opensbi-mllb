@@ -1,0 +1,1 @@
+savedcmd_drivers/nvdimm/built-in.a := rm -f drivers/nvdimm/built-in.a;  printf "drivers/nvdimm/%s " core.o bus.o dimm_devs.o nd_perf.o dimm.o region_devs.o region.o namespace_devs.o label.o badrange.o claim.o btt_devs.o pmem.o btt.o of_pmem.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/nvdimm/built-in.a

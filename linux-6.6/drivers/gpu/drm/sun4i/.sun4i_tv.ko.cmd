@@ -1,0 +1,1 @@
+savedcmd_drivers/gpu/drm/sun4i/sun4i_tv.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/gpu/drm/sun4i/sun4i_tv.ko drivers/gpu/drm/sun4i/sun4i_tv.o drivers/gpu/drm/sun4i/sun4i_tv.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/gpu/drm/sun4i/sun4i_tv.ko

@@ -1,0 +1,1 @@
+savedcmd_net/ipv4/netfilter/iptable_filter.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o net/ipv4/netfilter/iptable_filter.ko net/ipv4/netfilter/iptable_filter.o net/ipv4/netfilter/iptable_filter.mod.o;  make -f ./arch/riscv/Makefile.postlink net/ipv4/netfilter/iptable_filter.ko

@@ -1,0 +1,1 @@
+savedcmd_drivers/md/persistent-data/dm-persistent-data.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o drivers/md/persistent-data/dm-persistent-data.o @drivers/md/persistent-data/dm-persistent-data.mod 

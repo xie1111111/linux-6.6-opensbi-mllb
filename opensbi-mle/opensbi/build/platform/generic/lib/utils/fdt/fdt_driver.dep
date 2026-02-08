@@ -1,0 +1,27 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/lib/utils/fdt/fdt_driver.o: \
+ /root/autodl-tmp/opensbi-mle/opensbi/lib/utils/fdt/fdt_driver.c \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/lib/utils/libfdt/libfdt.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/lib/utils/libfdt/libfdt_env.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_string.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_types.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_byteorder.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/lib/utils/libfdt/fdt.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_console.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_error.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_ecall_interface.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi_utils/fdt/fdt_driver.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi_utils/fdt/fdt_helper.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_domain.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_locks.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_list.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_hartmask.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_bitmap.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_bitops.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_scratch.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_asm.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_encoding.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_const.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_domain_context.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_domain_data.h

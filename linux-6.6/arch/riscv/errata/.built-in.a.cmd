@@ -1,0 +1,1 @@
+savedcmd_arch/riscv/errata/built-in.a := rm -f arch/riscv/errata/built-in.a;  printf "arch/riscv/errata/%s " sifive/built-in.a thead/built-in.a | xargs riscv64-unknown-linux-gnu-ar cDPrST arch/riscv/errata/built-in.a

@@ -1,0 +1,1 @@
+savedcmd_fs/nls/nls_iso8859-1.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o fs/nls/nls_iso8859-1.ko fs/nls/nls_iso8859-1.o fs/nls/nls_iso8859-1.mod.o;  make -f ./arch/riscv/Makefile.postlink fs/nls/nls_iso8859-1.ko

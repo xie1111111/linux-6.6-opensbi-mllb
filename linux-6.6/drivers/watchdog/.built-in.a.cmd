@@ -1,0 +1,1 @@
+savedcmd_drivers/watchdog/built-in.a := rm -f drivers/watchdog/built-in.a;  printf "drivers/watchdog/%s " watchdog_core.o watchdog_dev.o sunxi_wdt.o starfive-wdt.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/watchdog/built-in.a

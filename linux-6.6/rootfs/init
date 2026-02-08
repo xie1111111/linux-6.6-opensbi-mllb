@@ -1,0 +1,8 @@
+#!/bin/sh
+# 挂载核心文件系统（激活网络/设备）
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t devtmpfs dev /dev
+
+# 启动shell（出现/ # 提示符）
+exec /bin/sh

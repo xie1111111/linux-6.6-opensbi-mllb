@@ -1,0 +1,1 @@
+savedcmd_drivers/gpu/drm/radeon/radeon.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o drivers/gpu/drm/radeon/radeon.o @drivers/gpu/drm/radeon/radeon.mod 

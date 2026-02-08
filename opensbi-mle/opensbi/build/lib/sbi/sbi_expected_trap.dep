@@ -1,0 +1,8 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/lib/sbi/sbi_expected_trap.o: \
+ /root/autodl-tmp/opensbi-mle/opensbi/lib/sbi/sbi_expected_trap.S \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_asm.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_encoding.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_const.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_trap.h

@@ -1,0 +1,4 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/mips/mips_warm_boot.o: \
+ /root/autodl-tmp/opensbi-mle/opensbi/platform/generic/mips/mips_warm_boot.S \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h

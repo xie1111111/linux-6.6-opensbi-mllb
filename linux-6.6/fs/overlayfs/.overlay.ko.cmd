@@ -1,0 +1,1 @@
+savedcmd_fs/overlayfs/overlay.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o fs/overlayfs/overlay.ko fs/overlayfs/overlay.o fs/overlayfs/overlay.mod.o;  make -f ./arch/riscv/Makefile.postlink fs/overlayfs/overlay.ko

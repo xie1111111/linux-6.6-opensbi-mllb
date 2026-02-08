@@ -1,0 +1,14 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/lib/sbi/sbi_illegal_atomic.o: \
+ /root/autodl-tmp/opensbi-mle/opensbi/lib/sbi/sbi_illegal_atomic.c \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_asm.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_encoding.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_const.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_hart.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_types.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_bitops.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_trap.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_scratch.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_illegal_atomic.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_illegal_insn.h

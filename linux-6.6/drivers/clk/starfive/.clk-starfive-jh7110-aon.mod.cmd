@@ -1,0 +1,1 @@
+savedcmd_drivers/clk/starfive/clk-starfive-jh7110-aon.mod := printf '%s\n'   clk-starfive-jh7110-aon.o | awk '!x[$$0]++ { print("drivers/clk/starfive/"$$0) }' > drivers/clk/starfive/clk-starfive-jh7110-aon.mod

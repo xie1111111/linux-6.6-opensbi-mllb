@@ -1,0 +1,1 @@
+savedcmd_drivers/firmware/efi/built-in.a := rm -f drivers/firmware/efi/built-in.a;  printf "drivers/firmware/efi/%s " efi.o vars.o reboot.o memattr.o tpm.o memmap.o fdtparams.o esrt.o runtime-wrappers.o efi-init.o riscv-runtime.o earlycon.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/firmware/efi/built-in.a

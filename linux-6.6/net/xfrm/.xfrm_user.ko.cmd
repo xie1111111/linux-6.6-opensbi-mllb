@@ -1,0 +1,1 @@
+savedcmd_net/xfrm/xfrm_user.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o net/xfrm/xfrm_user.ko net/xfrm/xfrm_user.o net/xfrm/xfrm_user.mod.o;  make -f ./arch/riscv/Makefile.postlink net/xfrm/xfrm_user.ko

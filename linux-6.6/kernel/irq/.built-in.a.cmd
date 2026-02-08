@@ -1,0 +1,1 @@
+savedcmd_kernel/irq/built-in.a := rm -f kernel/irq/built-in.a;  printf "kernel/irq/%s " irqdesc.o handle.o manage.o spurious.o resend.o chip.o dummychip.o devres.o irqdomain.o proc.o cpuhotplug.o pm.o msi.o ipi.o ipi-mux.o affinity.o | xargs riscv64-unknown-linux-gnu-ar cDPrST kernel/irq/built-in.a

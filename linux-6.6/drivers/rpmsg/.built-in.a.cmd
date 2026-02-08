@@ -1,0 +1,1 @@
+savedcmd_drivers/rpmsg/built-in.a := rm -f drivers/rpmsg/built-in.a;  printf "drivers/rpmsg/%s " rpmsg_core.o rpmsg_char.o rpmsg_ctrl.o rpmsg_ns.o virtio_rpmsg_bus.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/rpmsg/built-in.a

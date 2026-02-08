@@ -1,0 +1,1 @@
+savedcmd_drivers/gpu/drm/nouveau/nouveau.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o drivers/gpu/drm/nouveau/nouveau.o @drivers/gpu/drm/nouveau/nouveau.mod 

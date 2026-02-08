@@ -1,0 +1,1 @@
+savedcmd_drivers/md/dm-mod.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/md/dm-mod.ko drivers/md/dm-mod.o drivers/md/dm-mod.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/md/dm-mod.ko

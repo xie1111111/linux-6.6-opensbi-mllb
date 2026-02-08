@@ -1,0 +1,1 @@
+savedcmd_drivers/mmc/host/built-in.a := rm -f drivers/mmc/host/built-in.a;  printf "drivers/mmc/host/%s " sdhci.o mmc_spi.o of_mmc_spi.o sunxi-mmc.o sdhci-pltfm.o sdhci-cadence.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/mmc/host/built-in.a

@@ -1,0 +1,1 @@
+savedcmd_drivers/crypto/virtio/built-in.a := rm -f drivers/crypto/virtio/built-in.a;  printf "drivers/crypto/virtio/%s " virtio_crypto_skcipher_algs.o virtio_crypto_akcipher_algs.o virtio_crypto_mgr.o virtio_crypto_core.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/crypto/virtio/built-in.a

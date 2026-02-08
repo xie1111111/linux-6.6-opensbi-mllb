@@ -1,0 +1,1 @@
+savedcmd_drivers/clk/analogbits/built-in.a := rm -f drivers/clk/analogbits/built-in.a;  printf "drivers/clk/analogbits/%s " wrpll-cln28hpc.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/clk/analogbits/built-in.a

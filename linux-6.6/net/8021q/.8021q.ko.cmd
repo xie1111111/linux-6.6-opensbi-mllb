@@ -1,0 +1,1 @@
+savedcmd_net/8021q/8021q.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o net/8021q/8021q.ko net/8021q/8021q.o net/8021q/8021q.mod.o;  make -f ./arch/riscv/Makefile.postlink net/8021q/8021q.ko

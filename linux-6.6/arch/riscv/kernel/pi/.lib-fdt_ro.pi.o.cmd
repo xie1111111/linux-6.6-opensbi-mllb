@@ -1,0 +1,1 @@
+savedcmd_arch/riscv/kernel/pi/lib-fdt_ro.pi.o := riscv64-unknown-linux-gnu-objcopy --prefix-symbols=__pi_ --remove-section=.note.gnu.property --prefix-alloc-sections=.init.pi  arch/riscv/kernel/pi/lib-fdt_ro.o arch/riscv/kernel/pi/lib-fdt_ro.pi.o

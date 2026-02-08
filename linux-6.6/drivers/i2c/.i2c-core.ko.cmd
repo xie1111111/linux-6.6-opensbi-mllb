@@ -1,0 +1,1 @@
+savedcmd_drivers/i2c/i2c-core.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/i2c/i2c-core.ko drivers/i2c/i2c-core.o drivers/i2c/i2c-core.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/i2c/i2c-core.ko

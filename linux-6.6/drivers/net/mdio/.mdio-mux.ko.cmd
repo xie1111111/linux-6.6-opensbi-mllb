@@ -1,0 +1,1 @@
+savedcmd_drivers/net/mdio/mdio-mux.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/net/mdio/mdio-mux.ko drivers/net/mdio/mdio-mux.o drivers/net/mdio/mdio-mux.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/net/mdio/mdio-mux.ko

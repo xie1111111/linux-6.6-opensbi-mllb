@@ -1,0 +1,24 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/lib/utils/timer/aclint_mtimer.o: \
+ /root/autodl-tmp/opensbi-mle/opensbi/lib/utils/timer/aclint_mtimer.c \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_asm.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_encoding.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_const.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_atomic.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_io.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_barrier.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_types.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_bitops.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_domain.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_locks.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_list.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_hartmask.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_bitmap.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_scratch.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_domain_context.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_domain_data.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_error.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_ecall_interface.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_timer.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi_utils/timer/aclint_mtimer.h

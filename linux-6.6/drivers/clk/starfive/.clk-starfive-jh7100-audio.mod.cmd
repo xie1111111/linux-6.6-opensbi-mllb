@@ -1,0 +1,1 @@
+savedcmd_drivers/clk/starfive/clk-starfive-jh7100-audio.mod := printf '%s\n'   clk-starfive-jh7100-audio.o | awk '!x[$$0]++ { print("drivers/clk/starfive/"$$0) }' > drivers/clk/starfive/clk-starfive-jh7100-audio.mod

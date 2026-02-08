@@ -1,0 +1,1 @@
+savedcmd_drivers/clk/starfive/modules.order := {   echo drivers/clk/starfive/clk-starfive-jh7100-audio.o;   echo drivers/clk/starfive/clk-starfive-jh7110-aon.o;   echo drivers/clk/starfive/clk-starfive-jh7110-stg.o;   echo drivers/clk/starfive/clk-starfive-jh7110-isp.o;   echo drivers/clk/starfive/clk-starfive-jh7110-vout.o; :; } > drivers/clk/starfive/modules.order

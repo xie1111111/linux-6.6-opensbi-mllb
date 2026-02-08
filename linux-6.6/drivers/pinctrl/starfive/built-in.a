@@ -1,0 +1,10 @@
+!<thin>
+//                                              116       `
+pinctrl-starfive-jh7100.o/
+pinctrl-starfive-jh7110.o/
+pinctrl-starfive-jh7110-sys.o/
+pinctrl-starfive-jh7110-aon.o/
+/0              0           0     0     644     62344     `
+/27             0           0     0     644     35192     `
+/54             0           0     0     644     19360     `
+/85             0           0     0     644     8656      `

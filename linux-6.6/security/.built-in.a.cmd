@@ -1,0 +1,1 @@
+savedcmd_security/built-in.a := rm -f security/built-in.a;  printf "security/%s " keys/built-in.a commoncap.o min_addr.o security.o inode.o selinux/built-in.a lsm_audit.o apparmor/built-in.a device_cgroup.o integrity/built-in.a | xargs riscv64-unknown-linux-gnu-ar cDPrST security/built-in.a

@@ -1,0 +1,1 @@
+savedcmd_arch/riscv/kernel/compat_vdso/built-in.a := rm -f arch/riscv/kernel/compat_vdso/built-in.a;  printf "arch/riscv/kernel/compat_vdso/%s " compat_vdso.o | xargs riscv64-unknown-linux-gnu-ar cDPrST arch/riscv/kernel/compat_vdso/built-in.a

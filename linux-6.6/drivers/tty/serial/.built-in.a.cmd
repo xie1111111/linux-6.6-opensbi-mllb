@@ -1,0 +1,1 @@
+savedcmd_drivers/tty/serial/built-in.a := rm -f drivers/tty/serial/built-in.a;  printf "drivers/tty/serial/%s " serial_core.o serial_base_bus.o serial_ctrl.o serial_port.o earlycon.o 8250/built-in.a sh-sci.o sifive.o serial_mctrl_gpio.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/tty/serial/built-in.a

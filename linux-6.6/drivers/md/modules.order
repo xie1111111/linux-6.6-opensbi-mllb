@@ -1,0 +1,5 @@
+drivers/md/dm-mod.o
+drivers/md/dm-bufio.o
+drivers/md/dm-bio-prison.o
+drivers/md/persistent-data/dm-persistent-data.o
+drivers/md/dm-thin-pool.o

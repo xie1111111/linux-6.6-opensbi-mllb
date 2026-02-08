@@ -1,0 +1,1 @@
+savedcmd_drivers/net/mdio/built-in.a := rm -f drivers/net/mdio/built-in.a;  printf "drivers/net/mdio/%s " acpi_mdio.o fwnode_mdio.o of_mdio.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/net/mdio/built-in.a

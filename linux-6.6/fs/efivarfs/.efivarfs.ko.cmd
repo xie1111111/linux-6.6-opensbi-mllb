@@ -1,0 +1,1 @@
+savedcmd_fs/efivarfs/efivarfs.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o fs/efivarfs/efivarfs.ko fs/efivarfs/efivarfs.o fs/efivarfs/efivarfs.mod.o;  make -f ./arch/riscv/Makefile.postlink fs/efivarfs/efivarfs.ko

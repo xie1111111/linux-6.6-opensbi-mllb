@@ -1,0 +1,1 @@
+savedcmd_drivers/gpu/drm/drm_exec.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/gpu/drm/drm_exec.ko drivers/gpu/drm/drm_exec.o drivers/gpu/drm/drm_exec.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/gpu/drm/drm_exec.ko

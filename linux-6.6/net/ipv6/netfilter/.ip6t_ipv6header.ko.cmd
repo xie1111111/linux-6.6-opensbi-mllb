@@ -1,0 +1,1 @@
+savedcmd_net/ipv6/netfilter/ip6t_ipv6header.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o net/ipv6/netfilter/ip6t_ipv6header.ko net/ipv6/netfilter/ip6t_ipv6header.o net/ipv6/netfilter/ip6t_ipv6header.mod.o;  make -f ./arch/riscv/Makefile.postlink net/ipv6/netfilter/ip6t_ipv6header.ko

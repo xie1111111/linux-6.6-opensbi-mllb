@@ -1,0 +1,1 @@
+savedcmd_drivers/clk/starfive/built-in.a := rm -f drivers/clk/starfive/built-in.a;  printf "drivers/clk/starfive/%s " clk-starfive-jh71x0.o clk-starfive-jh7100.o clk-starfive-jh7110-pll.o clk-starfive-jh7110-sys.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/clk/starfive/built-in.a

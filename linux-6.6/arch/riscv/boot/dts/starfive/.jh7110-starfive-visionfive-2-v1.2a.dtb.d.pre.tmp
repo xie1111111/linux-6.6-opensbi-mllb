@@ -1,0 +1,10 @@
+jh7110-starfive-visionfive-2-v1.2a.o: \
+ arch/riscv/boot/dts/starfive/jh7110-starfive-visionfive-2-v1.2a.dts \
+ arch/riscv/boot/dts/starfive/jh7110-starfive-visionfive-2.dtsi \
+ arch/riscv/boot/dts/starfive/jh7110.dtsi \
+ scripts/dtc/include-prefixes/dt-bindings/clock/starfive,jh7110-crg.h \
+ scripts/dtc/include-prefixes/dt-bindings/power/starfive,jh7110-pmu.h \
+ scripts/dtc/include-prefixes/dt-bindings/reset/starfive,jh7110-crg.h \
+ scripts/dtc/include-prefixes/dt-bindings/thermal/thermal.h \
+ arch/riscv/boot/dts/starfive/jh7110-pinfunc.h \
+ scripts/dtc/include-prefixes/dt-bindings/gpio/gpio.h

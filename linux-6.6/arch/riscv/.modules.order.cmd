@@ -1,0 +1,1 @@
+savedcmd_arch/riscv/modules.order := {   cat arch/riscv/kernel/modules.order;   cat arch/riscv/mm/modules.order;   cat arch/riscv/net/modules.order;   cat arch/riscv/errata/modules.order;   cat arch/riscv/kvm/modules.order; :; } > arch/riscv/modules.order

@@ -1,0 +1,1 @@
+savedcmd_drivers/net/ethernet/stmicro/stmmac/stmmac.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o drivers/net/ethernet/stmicro/stmmac/stmmac.o @drivers/net/ethernet/stmicro/stmmac/stmmac.mod 

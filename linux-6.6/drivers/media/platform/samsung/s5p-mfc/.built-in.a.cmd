@@ -1,0 +1,1 @@
+savedcmd_drivers/media/platform/samsung/s5p-mfc/built-in.a := rm -f drivers/media/platform/samsung/s5p-mfc/built-in.a;  riscv64-unknown-linux-gnu-ar cDPrST drivers/media/platform/samsung/s5p-mfc/built-in.a

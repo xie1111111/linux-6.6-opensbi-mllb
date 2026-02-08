@@ -1,0 +1,1 @@
+savedcmd_arch/riscv/kernel/modules.order := {   cat arch/riscv/kernel/probes/modules.order;   cat arch/riscv/kernel/vdso/modules.order;   cat arch/riscv/kernel/compat_vdso/modules.order;   cat arch/riscv/kernel/pi/modules.order; :; } > arch/riscv/kernel/modules.order

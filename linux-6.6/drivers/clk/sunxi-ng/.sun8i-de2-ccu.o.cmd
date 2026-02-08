@@ -1,0 +1,1 @@
+savedcmd_drivers/clk/sunxi-ng/sun8i-de2-ccu.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o drivers/clk/sunxi-ng/sun8i-de2-ccu.o @drivers/clk/sunxi-ng/sun8i-de2-ccu.mod 

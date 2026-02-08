@@ -1,0 +1,1 @@
+savedcmd_net/netfilter/x_tables.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o net/netfilter/x_tables.ko net/netfilter/x_tables.o net/netfilter/x_tables.mod.o;  make -f ./arch/riscv/Makefile.postlink net/netfilter/x_tables.ko

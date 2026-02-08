@@ -1,0 +1,1 @@
+savedcmd_drivers/pinctrl/sunxi/built-in.a := rm -f drivers/pinctrl/sunxi/built-in.a;  printf "drivers/pinctrl/sunxi/%s " pinctrl-sunxi.o pinctrl-sun20i-d1.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/pinctrl/sunxi/built-in.a

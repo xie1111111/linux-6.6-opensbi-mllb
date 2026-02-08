@@ -1,0 +1,1 @@
+savedcmd_drivers/reset/starfive/built-in.a := rm -f drivers/reset/starfive/built-in.a;  printf "drivers/reset/starfive/%s " reset-starfive-jh71x0.o reset-starfive-jh7100.o reset-starfive-jh7110.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/reset/starfive/built-in.a

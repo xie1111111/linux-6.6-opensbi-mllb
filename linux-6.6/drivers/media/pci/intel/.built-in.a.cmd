@@ -1,0 +1,1 @@
+savedcmd_drivers/media/pci/intel/built-in.a := rm -f drivers/media/pci/intel/built-in.a;  printf "drivers/media/pci/intel/%s " ipu3/built-in.a ivsc/built-in.a | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/media/pci/intel/built-in.a

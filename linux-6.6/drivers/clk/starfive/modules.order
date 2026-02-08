@@ -1,0 +1,5 @@
+drivers/clk/starfive/clk-starfive-jh7100-audio.o
+drivers/clk/starfive/clk-starfive-jh7110-aon.o
+drivers/clk/starfive/clk-starfive-jh7110-stg.o
+drivers/clk/starfive/clk-starfive-jh7110-isp.o
+drivers/clk/starfive/clk-starfive-jh7110-vout.o

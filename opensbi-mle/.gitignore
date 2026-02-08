@@ -1,0 +1,65 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# OpenSBI build artifacts
+build/
+install/
+*.elf
+*.bin
+*.dep
+*.map
+
+# Abstract Machine build artifacts
+am/build/
+klib/build/
+abstract-machine/am/build/
+abstract-machine/klib/build/
+
+# Mini Kernel Test build artifacts
+mini-kernel-test/build/
+
+# QEMU build artifacts
+*qemu
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Direnv
+.direnv/
+.envrc
+
+*.opensbi-old

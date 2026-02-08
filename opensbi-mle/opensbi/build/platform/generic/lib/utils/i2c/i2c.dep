@@ -1,0 +1,8 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/lib/utils/i2c/i2c.o: /root/autodl-tmp/opensbi-mle/opensbi/lib/utils/i2c/i2c.c \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_error.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_ecall_interface.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_types.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi_utils/i2c/i2c.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_list.h

@@ -1,0 +1,1 @@
+savedcmd_lib/zlib_deflate/zlib_deflate.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o lib/zlib_deflate/zlib_deflate.o @lib/zlib_deflate/zlib_deflate.mod 

@@ -1,0 +1,1 @@
+savedcmd_drivers/media/platform/mediatek/vcodec/built-in.a := rm -f drivers/media/platform/mediatek/vcodec/built-in.a;  printf "drivers/media/platform/mediatek/vcodec/%s " common/built-in.a encoder/built-in.a decoder/built-in.a | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/media/platform/mediatek/vcodec/built-in.a

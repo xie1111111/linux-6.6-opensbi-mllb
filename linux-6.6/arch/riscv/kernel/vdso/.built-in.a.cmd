@@ -1,0 +1,1 @@
+savedcmd_arch/riscv/kernel/vdso/built-in.a := rm -f arch/riscv/kernel/vdso/built-in.a;  printf "arch/riscv/kernel/vdso/%s " vdso.o | xargs riscv64-unknown-linux-gnu-ar cDPrST arch/riscv/kernel/vdso/built-in.a

@@ -1,0 +1,1 @@
+savedcmd_kernel/dma/built-in.a := rm -f kernel/dma/built-in.a;  printf "kernel/dma/%s " mapping.o direct.o coherent.o swiotlb.o pool.o remap.o | xargs riscv64-unknown-linux-gnu-ar cDPrST kernel/dma/built-in.a

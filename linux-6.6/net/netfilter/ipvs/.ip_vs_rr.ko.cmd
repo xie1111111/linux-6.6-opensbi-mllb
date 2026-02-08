@@ -1,0 +1,1 @@
+savedcmd_net/netfilter/ipvs/ip_vs_rr.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o net/netfilter/ipvs/ip_vs_rr.ko net/netfilter/ipvs/ip_vs_rr.o net/netfilter/ipvs/ip_vs_rr.mod.o;  make -f ./arch/riscv/Makefile.postlink net/netfilter/ipvs/ip_vs_rr.ko

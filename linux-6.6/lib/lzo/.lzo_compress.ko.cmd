@@ -1,0 +1,1 @@
+savedcmd_lib/lzo/lzo_compress.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o lib/lzo/lzo_compress.ko lib/lzo/lzo_compress.o lib/lzo/lzo_compress.mod.o;  make -f ./arch/riscv/Makefile.postlink lib/lzo/lzo_compress.ko

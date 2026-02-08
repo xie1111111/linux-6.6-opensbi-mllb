@@ -1,0 +1,1 @@
+savedcmd_drivers/clocksource/built-in.a := rm -f drivers/clocksource/built-in.a;  printf "drivers/clocksource/%s " timer-of.o timer-probe.o mmio.o timer-sun4i.o dummy_timer.o timer-riscv.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/clocksource/built-in.a

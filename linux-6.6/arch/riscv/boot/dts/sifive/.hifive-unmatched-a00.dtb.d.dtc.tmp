@@ -1,0 +1,1 @@
+arch/riscv/boot/dts/sifive/hifive-unmatched-a00.dtb: arch/riscv/boot/dts/sifive/.hifive-unmatched-a00.dtb.dts.tmp

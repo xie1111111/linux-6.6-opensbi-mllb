@@ -1,0 +1,4 @@
+th1520-beaglev-ahead.o: \
+ arch/riscv/boot/dts/thead/th1520-beaglev-ahead.dts \
+ arch/riscv/boot/dts/thead/th1520.dtsi \
+ scripts/dtc/include-prefixes/dt-bindings/interrupt-controller/irq.h

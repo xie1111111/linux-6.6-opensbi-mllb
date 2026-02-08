@@ -1,0 +1,1 @@
+savedcmd_kernel/locking/built-in.a := rm -f kernel/locking/built-in.a;  printf "kernel/locking/%s " mutex.o semaphore.o rwsem.o percpu-rwsem.o mutex-debug.o spinlock.o osq_lock.o rtmutex_api.o spinlock_debug.o qrwlock.o | xargs riscv64-unknown-linux-gnu-ar cDPrST kernel/locking/built-in.a

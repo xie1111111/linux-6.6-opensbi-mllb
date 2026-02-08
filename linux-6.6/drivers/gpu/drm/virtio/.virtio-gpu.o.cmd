@@ -1,0 +1,1 @@
+savedcmd_drivers/gpu/drm/virtio/virtio-gpu.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o drivers/gpu/drm/virtio/virtio-gpu.o @drivers/gpu/drm/virtio/virtio-gpu.mod 

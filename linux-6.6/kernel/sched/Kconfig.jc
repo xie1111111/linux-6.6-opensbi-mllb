@@ -1,0 +1,39 @@
+#
+#   JC lb experiment configuration
+#
+
+menu "Sched Experiment"
+
+config JC_SCHED
+    bool "JC ML CFS load banlancer"
+    default n
+    help
+       Experimental load balancer based on ML models 
+
+choice 
+    prompt "Mode"
+    depends on JC_SCHED
+
+config JC_SCHED_TOGGLE
+    bool "Toggle"
+
+config JC_SCHED_REPLACE
+    bool "Replace"
+
+config JC_SCHED_TEST
+    bool "Test"
+
+endchoice 
+
+config JC_SCHED_FXDPT
+    bool "Use fixed point calculation"
+    depends on JC_SCHED
+    default n
+
+config JC_SCHED_PERF
+    bool "ML Load balancer with perf counters"
+    depends on JC_SCHED && PERF_EVENTS
+    default n
+
+
+endmenu

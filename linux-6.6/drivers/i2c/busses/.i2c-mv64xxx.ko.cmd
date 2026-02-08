@@ -1,0 +1,1 @@
+savedcmd_drivers/i2c/busses/i2c-mv64xxx.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/i2c/busses/i2c-mv64xxx.ko drivers/i2c/busses/i2c-mv64xxx.o drivers/i2c/busses/i2c-mv64xxx.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/i2c/busses/i2c-mv64xxx.ko

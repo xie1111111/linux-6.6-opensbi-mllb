@@ -1,0 +1,1 @@
+savedcmd_drivers/md/dm-bio-prison.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/md/dm-bio-prison.ko drivers/md/dm-bio-prison.o drivers/md/dm-bio-prison.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/md/dm-bio-prison.ko

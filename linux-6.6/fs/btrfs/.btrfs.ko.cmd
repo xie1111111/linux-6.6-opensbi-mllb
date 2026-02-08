@@ -1,0 +1,1 @@
+savedcmd_fs/btrfs/btrfs.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o fs/btrfs/btrfs.ko fs/btrfs/btrfs.o fs/btrfs/btrfs.mod.o;  make -f ./arch/riscv/Makefile.postlink fs/btrfs/btrfs.ko

@@ -1,0 +1,1 @@
+savedcmd_arch/riscv/lib/lib.a := rm -f arch/riscv/lib/lib.a; riscv64-unknown-linux-gnu-ar cDPrsT arch/riscv/lib/lib.a arch/riscv/lib/clear_page.o arch/riscv/lib/delay.o arch/riscv/lib/memcpy.o arch/riscv/lib/memmove.o arch/riscv/lib/memset.o arch/riscv/lib/strcmp.o arch/riscv/lib/strlen.o arch/riscv/lib/strncmp.o arch/riscv/lib/tishift.o arch/riscv/lib/uaccess.o

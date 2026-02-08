@@ -1,0 +1,1 @@
+savedcmd_net/netfilter/nf_conntrack_ftp.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o net/netfilter/nf_conntrack_ftp.ko net/netfilter/nf_conntrack_ftp.o net/netfilter/nf_conntrack_ftp.mod.o;  make -f ./arch/riscv/Makefile.postlink net/netfilter/nf_conntrack_ftp.ko

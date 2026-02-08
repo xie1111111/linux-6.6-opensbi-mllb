@@ -1,0 +1,4 @@
+mpfs-m100pfsevp.o: arch/riscv/boot/dts/microchip/mpfs-m100pfsevp.dts \
+ arch/riscv/boot/dts/microchip/mpfs.dtsi \
+ scripts/dtc/include-prefixes/dt-bindings/clock/microchip,mpfs-clock.h \
+ arch/riscv/boot/dts/microchip/mpfs-m100pfs-fabric.dtsi

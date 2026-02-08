@@ -1,0 +1,1 @@
+savedcmd_drivers/cpuidle/built-in.a := rm -f drivers/cpuidle/built-in.a;  printf "drivers/cpuidle/%s " cpuidle.o driver.o governor.o sysfs.o governors/built-in.a dt_idle_states.o dt_idle_genpd.o cpuidle-riscv-sbi.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/cpuidle/built-in.a

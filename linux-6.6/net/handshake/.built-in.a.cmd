@@ -1,0 +1,1 @@
+savedcmd_net/handshake/built-in.a := rm -f net/handshake/built-in.a;  printf "net/handshake/%s " alert.o genl.o netlink.o request.o tlshd.o trace.o | xargs riscv64-unknown-linux-gnu-ar cDPrST net/handshake/built-in.a

@@ -1,0 +1,1 @@
+savedcmd_vmlinux.a := rm -f vmlinux.a; riscv64-unknown-linux-gnu-ar cDPrST vmlinux.a ./built-in.a  lib/lib.a  arch/riscv/lib/lib.a; riscv64-unknown-linux-gnu-ar mPiT $$(riscv64-unknown-linux-gnu-ar t vmlinux.a | sed -n 1p) vmlinux.a $$(riscv64-unknown-linux-gnu-ar t vmlinux.a | grep -F -f ./scripts/head-object-list.txt)

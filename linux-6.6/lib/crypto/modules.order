@@ -1,0 +1,3 @@
+lib/crypto/libaes.o
+lib/crypto/gf128mul.o
+lib/crypto/libsha256.o

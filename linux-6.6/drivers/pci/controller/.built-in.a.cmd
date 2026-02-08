@@ -1,0 +1,1 @@
+savedcmd_drivers/pci/controller/built-in.a := rm -f drivers/pci/controller/built-in.a;  printf "drivers/pci/controller/%s " pci-host-common.o pci-host-generic.o pcie-xilinx.o dwc/built-in.a mobiveil/built-in.a | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/pci/controller/built-in.a

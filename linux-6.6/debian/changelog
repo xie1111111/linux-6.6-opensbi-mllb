@@ -1,0 +1,5 @@
+linux-upstream (6.6.0-70) unstable; urgency=low
+
+  * Custom built Linux kernel.
+
+ -- root <root@autodl-container-42a44688ad-55d099d5>  Sat, 07 Feb 2026 21:17:04 +0800

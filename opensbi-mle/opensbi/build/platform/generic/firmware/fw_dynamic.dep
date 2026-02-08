@@ -1,0 +1,12 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/firmware/fw_dynamic.o: /root/autodl-tmp/opensbi-mle/opensbi/firmware/fw_dynamic.S \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/fw_dynamic.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_asm.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_encoding.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_const.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/firmware/fw_base.S \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_elf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_platform.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_scratch.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_trap.h

@@ -1,0 +1,1 @@
+savedcmd_drivers/video/fbdev/omap2/built-in.a := rm -f drivers/video/fbdev/omap2/built-in.a;  printf "drivers/video/fbdev/omap2/%s " omapfb/built-in.a | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/video/fbdev/omap2/built-in.a

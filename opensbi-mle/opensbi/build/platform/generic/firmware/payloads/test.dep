@@ -1,0 +1,13 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/firmware/payloads/test_head.o: \
+ /root/autodl-tmp/opensbi-mle/opensbi/firmware/payloads/test_head.S \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/riscv_encoding.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_const.h
+/root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/firmware/payloads/test_main.o: \
+ /root/autodl-tmp/opensbi-mle/opensbi/firmware/payloads/test_main.c \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_ecall_interface.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_types.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_string.h

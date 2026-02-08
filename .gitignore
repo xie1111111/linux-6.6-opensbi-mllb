@@ -1,0 +1,5 @@
+*
+!linux-6.6/
+!opensbi/
+!.gitignore
+!opensbi-mle/

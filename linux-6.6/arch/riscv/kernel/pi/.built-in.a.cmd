@@ -1,0 +1,1 @@
+savedcmd_arch/riscv/kernel/pi/built-in.a := rm -f arch/riscv/kernel/pi/built-in.a;  printf "arch/riscv/kernel/pi/%s " cmdline_early.pi.o fdt_early.pi.o string.pi.o ctype.pi.o lib-fdt.pi.o lib-fdt_ro.pi.o | xargs riscv64-unknown-linux-gnu-ar cDPrST arch/riscv/kernel/pi/built-in.a

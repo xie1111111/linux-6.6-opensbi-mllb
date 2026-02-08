@@ -1,0 +1,9 @@
+!<thin>
+//                                              58        `
+pcie-designware.o/
+pcie-designware-host.o/
+pcie-fu740.o/
+
+/0              0           0     0     644     37720     `
+/19             0           0     0     644     34080     `
+/43             0           0     0     644     14272     `

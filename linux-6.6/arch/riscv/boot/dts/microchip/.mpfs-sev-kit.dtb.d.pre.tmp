@@ -1,0 +1,4 @@
+mpfs-sev-kit.o: arch/riscv/boot/dts/microchip/mpfs-sev-kit.dts \
+ arch/riscv/boot/dts/microchip/mpfs.dtsi \
+ scripts/dtc/include-prefixes/dt-bindings/clock/microchip,mpfs-clock.h \
+ arch/riscv/boot/dts/microchip/mpfs-sev-kit-fabric.dtsi

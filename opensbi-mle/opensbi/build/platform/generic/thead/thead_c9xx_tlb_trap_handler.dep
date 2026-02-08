@@ -1,0 +1,4 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/thead/thead_c9xx_tlb_trap_handler.o: \
+ /root/autodl-tmp/opensbi-mle/opensbi/platform/generic/thead/thead_c9xx_tlb_trap_handler.S \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h

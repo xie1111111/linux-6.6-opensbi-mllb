@@ -1,0 +1,1 @@
+savedcmd_drivers/gpu/drm/display/drm_display_helper.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o drivers/gpu/drm/display/drm_display_helper.o @drivers/gpu/drm/display/drm_display_helper.mod 

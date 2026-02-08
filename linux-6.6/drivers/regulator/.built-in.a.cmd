@@ -1,0 +1,1 @@
+savedcmd_drivers/regulator/built-in.a := rm -f drivers/regulator/built-in.a;  printf "drivers/regulator/%s " core.o dummy.o fixed-helper.o helpers.o devres.o irq_helpers.o of_regulator.o fixed.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/regulator/built-in.a

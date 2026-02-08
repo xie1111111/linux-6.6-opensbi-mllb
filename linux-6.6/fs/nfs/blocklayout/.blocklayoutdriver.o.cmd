@@ -1,0 +1,1 @@
+savedcmd_fs/nfs/blocklayout/blocklayoutdriver.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o fs/nfs/blocklayout/blocklayoutdriver.o @fs/nfs/blocklayout/blocklayoutdriver.mod 

@@ -1,0 +1,1 @@
+savedcmd_drivers/perf/built-in.a := rm -f drivers/perf/built-in.a;  printf "drivers/perf/%s " riscv_pmu.o riscv_pmu_legacy.o riscv_pmu_sbi.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/perf/built-in.a

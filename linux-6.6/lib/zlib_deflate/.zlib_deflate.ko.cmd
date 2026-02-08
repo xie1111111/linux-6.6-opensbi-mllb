@@ -1,0 +1,1 @@
+savedcmd_lib/zlib_deflate/zlib_deflate.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o lib/zlib_deflate/zlib_deflate.ko lib/zlib_deflate/zlib_deflate.o lib/zlib_deflate/zlib_deflate.mod.o;  make -f ./arch/riscv/Makefile.postlink lib/zlib_deflate/zlib_deflate.ko

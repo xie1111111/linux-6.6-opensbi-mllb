@@ -1,0 +1,5 @@
+/root/autodl-tmp/opensbi-mle/opensbi/build/lib/sbi/sbi_string.o: /root/autodl-tmp/opensbi-mle/opensbi/lib/sbi/sbi_string.c \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_visibility.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/build/platform/generic/kconfig/autoconf.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_string.h \
+ /root/autodl-tmp/opensbi-mle/opensbi/include/sbi/sbi_types.h

@@ -1,0 +1,18 @@
+!<thin>
+//                                              116       `
+cpuidle.o/
+driver.o/
+governor.o/
+sysfs.o/
+governors/menu.o/
+dt_idle_states.o/
+dt_idle_genpd.o/
+cpuidle-riscv-sbi.o/
+/0              0           0     0     644     32680     `
+/11             0           0     0     644     15560     `
+/21             0           0     0     644     7264      `
+/33             0           0     0     644     32024     `
+/42             0           0     0     644     9536      `
+/60             0           0     0     644     9592      `
+/78             0           0     0     644     9136      `
+/95             0           0     0     644     30144     `

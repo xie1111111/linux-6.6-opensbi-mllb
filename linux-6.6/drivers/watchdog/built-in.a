@@ -1,0 +1,10 @@
+!<thin>
+//                                              62        `
+watchdog_core.o/
+watchdog_dev.o/
+sunxi_wdt.o/
+starfive-wdt.o/
+/0              0           0     0     644     23024     `
+/17             0           0     0     644     39088     `
+/33             0           0     0     644     13384     `
+/46             0           0     0     644     26760     `

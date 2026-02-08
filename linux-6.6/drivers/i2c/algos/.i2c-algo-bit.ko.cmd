@@ -1,0 +1,1 @@
+savedcmd_drivers/i2c/algos/i2c-algo-bit.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/i2c/algos/i2c-algo-bit.ko drivers/i2c/algos/i2c-algo-bit.o drivers/i2c/algos/i2c-algo-bit.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/i2c/algos/i2c-algo-bit.ko

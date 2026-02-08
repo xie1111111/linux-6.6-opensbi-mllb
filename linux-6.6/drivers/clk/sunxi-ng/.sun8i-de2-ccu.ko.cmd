@@ -1,0 +1,1 @@
+savedcmd_drivers/clk/sunxi-ng/sun8i-de2-ccu.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/clk/sunxi-ng/sun8i-de2-ccu.ko drivers/clk/sunxi-ng/sun8i-de2-ccu.o drivers/clk/sunxi-ng/sun8i-de2-ccu.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/clk/sunxi-ng/sun8i-de2-ccu.ko

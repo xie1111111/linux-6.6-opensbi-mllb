@@ -1,0 +1,27 @@
+!<thin>
+//                                              184       `
+efi/efi.o/
+efi/vars.o/
+efi/reboot.o/
+efi/memattr.o/
+efi/tpm.o/
+efi/memmap.o/
+efi/fdtparams.o/
+efi/esrt.o/
+efi/runtime-wrappers.o/
+efi/efi-init.o/
+efi/riscv-runtime.o/
+efi/earlycon.o/
+
+/0              0           0     0     644     52176     `
+/11             0           0     0     644     12216     `
+/23             0           0     0     644     3376      `
+/37             0           0     0     644     9168      `
+/52             0           0     0     644     6960      `
+/63             0           0     0     644     5088      `
+/77             0           0     0     644     5200      `
+/94             0           0     0     644     20600     `
+/106            0           0     0     644     29008     `
+/130            0           0     0     644     11240     `
+/146            0           0     0     644     10944     `
+/167            0           0     0     644     23288     `

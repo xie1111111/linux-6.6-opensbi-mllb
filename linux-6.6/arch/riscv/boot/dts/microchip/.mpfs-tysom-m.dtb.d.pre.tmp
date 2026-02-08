@@ -1,0 +1,4 @@
+mpfs-tysom-m.o: arch/riscv/boot/dts/microchip/mpfs-tysom-m.dts \
+ arch/riscv/boot/dts/microchip/mpfs.dtsi \
+ scripts/dtc/include-prefixes/dt-bindings/clock/microchip,mpfs-clock.h \
+ arch/riscv/boot/dts/microchip/mpfs-tysom-m-fabric.dtsi

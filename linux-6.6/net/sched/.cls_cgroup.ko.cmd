@@ -1,0 +1,1 @@
+savedcmd_net/sched/cls_cgroup.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o net/sched/cls_cgroup.ko net/sched/cls_cgroup.o net/sched/cls_cgroup.mod.o;  make -f ./arch/riscv/Makefile.postlink net/sched/cls_cgroup.ko

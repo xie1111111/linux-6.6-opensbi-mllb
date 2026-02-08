@@ -1,0 +1,8 @@
+lib/crypto/libaes.o
+lib/crypto/gf128mul.o
+lib/crypto/libsha256.o
+lib/lzo/lzo_compress.o
+lib/crc-ccitt.o
+lib/libcrc32c.o
+lib/zlib_deflate/zlib_deflate.o
+lib/raid6/raid6_pq.o

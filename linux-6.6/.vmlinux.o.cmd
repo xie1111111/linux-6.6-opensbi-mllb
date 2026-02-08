@@ -1,0 +1,1 @@
+savedcmd_vmlinux.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments -r -o vmlinux.o  --whole-archive vmlinux.a --no-whole-archive --start-group ./drivers/firmware/efi/libstub/lib.a --end-group 

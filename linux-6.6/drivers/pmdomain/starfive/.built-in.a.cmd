@@ -1,0 +1,1 @@
+savedcmd_drivers/pmdomain/starfive/built-in.a := rm -f drivers/pmdomain/starfive/built-in.a;  printf "drivers/pmdomain/starfive/%s " jh71xx-pmu.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/pmdomain/starfive/built-in.a

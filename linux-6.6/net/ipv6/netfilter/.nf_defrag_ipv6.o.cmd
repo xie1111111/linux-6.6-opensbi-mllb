@@ -1,0 +1,1 @@
+savedcmd_net/ipv6/netfilter/nf_defrag_ipv6.o := riscv64-unknown-linux-gnu-ld -melf64lriscv -z noexecstack --no-warn-rwx-segments   -r -o net/ipv6/netfilter/nf_defrag_ipv6.o @net/ipv6/netfilter/nf_defrag_ipv6.mod 

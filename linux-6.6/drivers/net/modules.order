@@ -1,0 +1,14 @@
+drivers/net/mdio/mdio-mux.o
+drivers/net/pcs/pcs_xpcs.o
+drivers/net/ethernet/stmicro/stmmac/stmmac.o
+drivers/net/ethernet/stmicro/stmmac/stmmac-platform.o
+drivers/net/ethernet/stmicro/stmmac/dwmac-starfive.o
+drivers/net/ethernet/stmicro/stmmac/dwmac-sunxi.o
+drivers/net/ethernet/stmicro/stmmac/dwmac-sun8i.o
+drivers/net/ethernet/stmicro/stmmac/dwmac-generic.o
+drivers/net/ipvlan/ipvlan.o
+drivers/net/dummy.o
+drivers/net/macvlan.o
+drivers/net/mii.o
+drivers/net/veth.o
+drivers/net/vxlan/vxlan.o

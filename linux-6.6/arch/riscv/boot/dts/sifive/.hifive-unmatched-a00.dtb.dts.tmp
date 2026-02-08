@@ -1,0 +1,648 @@
+# 0 "arch/riscv/boot/dts/sifive/hifive-unmatched-a00.dts"
+# 0 "<built-in>"
+# 0 "<command-line>"
+# 1 "arch/riscv/boot/dts/sifive/hifive-unmatched-a00.dts"
+
+
+
+# 1 "arch/riscv/boot/dts/sifive/fu740-c000.dtsi" 1
+
+
+
+/dts-v1/;
+
+# 1 "./scripts/dtc/include-prefixes/dt-bindings/clock/sifive-fu740-prci.h" 1
+# 7 "arch/riscv/boot/dts/sifive/fu740-c000.dtsi" 2
+
+/ {
+ #address-cells = <2>;
+ #size-cells = <2>;
+ compatible = "sifive,fu740-c000", "sifive,fu740";
+
+ aliases {
+  serial0 = &uart0;
+  serial1 = &uart1;
+  ethernet0 = &eth0;
+ };
+
+ chosen {
+ };
+
+ cpus {
+  #address-cells = <1>;
+  #size-cells = <0>;
+  cpu0: cpu@0 {
+   compatible = "sifive,bullet0", "riscv";
+   device_type = "cpu";
+   i-cache-block-size = <64>;
+   i-cache-sets = <128>;
+   i-cache-size = <16384>;
+   next-level-cache = <&ccache>;
+   reg = <0x0>;
+   riscv,isa = "rv64imac";
+   status = "disabled";
+   cpu0_intc: interrupt-controller {
+    #interrupt-cells = <1>;
+    compatible = "riscv,cpu-intc";
+    interrupt-controller;
+   };
+  };
+  cpu1: cpu@1 {
+   compatible = "sifive,bullet0", "riscv";
+   d-cache-block-size = <64>;
+   d-cache-sets = <64>;
+   d-cache-size = <32768>;
+   d-tlb-sets = <1>;
+   d-tlb-size = <40>;
+   device_type = "cpu";
+   i-cache-block-size = <64>;
+   i-cache-sets = <128>;
+   i-cache-size = <32768>;
+   i-tlb-sets = <1>;
+   i-tlb-size = <40>;
+   mmu-type = "riscv,sv39";
+   next-level-cache = <&ccache>;
+   reg = <0x1>;
+   riscv,isa = "rv64imafdc";
+   tlb-split;
+   cpu1_intc: interrupt-controller {
+    #interrupt-cells = <1>;
+    compatible = "riscv,cpu-intc";
+    interrupt-controller;
+   };
+  };
+  cpu2: cpu@2 {
+   compatible = "sifive,bullet0", "riscv";
+   d-cache-block-size = <64>;
+   d-cache-sets = <64>;
+   d-cache-size = <32768>;
+   d-tlb-sets = <1>;
+   d-tlb-size = <40>;
+   device_type = "cpu";
+   i-cache-block-size = <64>;
+   i-cache-sets = <128>;
+   i-cache-size = <32768>;
+   i-tlb-sets = <1>;
+   i-tlb-size = <40>;
+   mmu-type = "riscv,sv39";
+   next-level-cache = <&ccache>;
+   reg = <0x2>;
+   riscv,isa = "rv64imafdc";
+   tlb-split;
+   cpu2_intc: interrupt-controller {
+    #interrupt-cells = <1>;
+    compatible = "riscv,cpu-intc";
+    interrupt-controller;
+   };
+  };
+  cpu3: cpu@3 {
+   compatible = "sifive,bullet0", "riscv";
+   d-cache-block-size = <64>;
+   d-cache-sets = <64>;
+   d-cache-size = <32768>;
+   d-tlb-sets = <1>;
+   d-tlb-size = <40>;
+   device_type = "cpu";
+   i-cache-block-size = <64>;
+   i-cache-sets = <128>;
+   i-cache-size = <32768>;
+   i-tlb-sets = <1>;
+   i-tlb-size = <40>;
+   mmu-type = "riscv,sv39";
+   next-level-cache = <&ccache>;
+   reg = <0x3>;
+   riscv,isa = "rv64imafdc";
+   tlb-split;
+   cpu3_intc: interrupt-controller {
+    #interrupt-cells = <1>;
+    compatible = "riscv,cpu-intc";
+    interrupt-controller;
+   };
+  };
+  cpu4: cpu@4 {
+   compatible = "sifive,bullet0", "riscv";
+   d-cache-block-size = <64>;
+   d-cache-sets = <64>;
+   d-cache-size = <32768>;
+   d-tlb-sets = <1>;
+   d-tlb-size = <40>;
+   device_type = "cpu";
+   i-cache-block-size = <64>;
+   i-cache-sets = <128>;
+   i-cache-size = <32768>;
+   i-tlb-sets = <1>;
+   i-tlb-size = <40>;
+   mmu-type = "riscv,sv39";
+   next-level-cache = <&ccache>;
+   reg = <0x4>;
+   riscv,isa = "rv64imafdc";
+   tlb-split;
+   cpu4_intc: interrupt-controller {
+    #interrupt-cells = <1>;
+    compatible = "riscv,cpu-intc";
+    interrupt-controller;
+   };
+  };
+
+  cpu-map {
+   cluster0 {
+    core0 {
+     cpu = <&cpu0>;
+    };
+
+    core1 {
+     cpu = <&cpu1>;
+    };
+
+    core2 {
+     cpu = <&cpu2>;
+    };
+
+    core3 {
+     cpu = <&cpu3>;
+    };
+
+    core4 {
+     cpu = <&cpu4>;
+    };
+   };
+  };
+ };
+ soc {
+  #address-cells = <2>;
+  #size-cells = <2>;
+  compatible = "simple-bus";
+  ranges;
+  plic0: interrupt-controller@c000000 {
+   #interrupt-cells = <1>;
+   #address-cells = <0>;
+   compatible = "sifive,fu540-c000-plic", "sifive,plic-1.0.0";
+   reg = <0x0 0xc000000 0x0 0x4000000>;
+   riscv,ndev = <69>;
+   interrupt-controller;
+   interrupts-extended =
+    <&cpu0_intc 0xffffffff>,
+    <&cpu1_intc 0xffffffff>, <&cpu1_intc 9>,
+    <&cpu2_intc 0xffffffff>, <&cpu2_intc 9>,
+    <&cpu3_intc 0xffffffff>, <&cpu3_intc 9>,
+    <&cpu4_intc 0xffffffff>, <&cpu4_intc 9>;
+  };
+  prci: clock-controller@10000000 {
+   compatible = "sifive,fu740-c000-prci";
+   reg = <0x0 0x10000000 0x0 0x1000>;
+   clocks = <&hfclk>, <&rtcclk>;
+   #clock-cells = <1>;
+   #reset-cells = <1>;
+  };
+  uart0: serial@10010000 {
+   compatible = "sifive,fu740-c000-uart", "sifive,uart0";
+   reg = <0x0 0x10010000 0x0 0x1000>;
+   interrupt-parent = <&plic0>;
+   interrupts = <39>;
+   clocks = <&prci 7>;
+   status = "disabled";
+  };
+  uart1: serial@10011000 {
+   compatible = "sifive,fu740-c000-uart", "sifive,uart0";
+   reg = <0x0 0x10011000 0x0 0x1000>;
+   interrupt-parent = <&plic0>;
+   interrupts = <40>;
+   clocks = <&prci 7>;
+   status = "disabled";
+  };
+  i2c0: i2c@10030000 {
+   compatible = "sifive,fu740-c000-i2c", "sifive,i2c0";
+   reg = <0x0 0x10030000 0x0 0x1000>;
+   interrupt-parent = <&plic0>;
+   interrupts = <52>;
+   clocks = <&prci 7>;
+   reg-shift = <2>;
+   reg-io-width = <1>;
+   #address-cells = <1>;
+   #size-cells = <0>;
+   status = "disabled";
+  };
+  i2c1: i2c@10031000 {
+   compatible = "sifive,fu740-c000-i2c", "sifive,i2c0";
+   reg = <0x0 0x10031000 0x0 0x1000>;
+   interrupt-parent = <&plic0>;
+   interrupts = <53>;
+   clocks = <&prci 7>;
+   reg-shift = <2>;
+   reg-io-width = <1>;
+   #address-cells = <1>;
+   #size-cells = <0>;
+   status = "disabled";
+  };
+  qspi0: spi@10040000 {
+   compatible = "sifive,fu740-c000-spi", "sifive,spi0";
+   reg = <0x0 0x10040000 0x0 0x1000>,
+         <0x0 0x20000000 0x0 0x10000000>;
+   interrupt-parent = <&plic0>;
+   interrupts = <41>;
+   clocks = <&prci 7>;
+   #address-cells = <1>;
+   #size-cells = <0>;
+   status = "disabled";
+  };
+  qspi1: spi@10041000 {
+   compatible = "sifive,fu740-c000-spi", "sifive,spi0";
+   reg = <0x0 0x10041000 0x0 0x1000>,
+         <0x0 0x30000000 0x0 0x10000000>;
+   interrupt-parent = <&plic0>;
+   interrupts = <42>;
+   clocks = <&prci 7>;
+   #address-cells = <1>;
+   #size-cells = <0>;
+   status = "disabled";
+  };
+  spi0: spi@10050000 {
+   compatible = "sifive,fu740-c000-spi", "sifive,spi0";
+   reg = <0x0 0x10050000 0x0 0x1000>;
+   interrupt-parent = <&plic0>;
+   interrupts = <43>;
+   clocks = <&prci 7>;
+   #address-cells = <1>;
+   #size-cells = <0>;
+   status = "disabled";
+  };
+  eth0: ethernet@10090000 {
+   compatible = "sifive,fu540-c000-gem";
+   interrupt-parent = <&plic0>;
+   interrupts = <55>;
+   reg = <0x0 0x10090000 0x0 0x2000>,
+         <0x0 0x100a0000 0x0 0x1000>;
+   local-mac-address = [00 00 00 00 00 00];
+   clock-names = "pclk", "hclk";
+   clocks = <&prci 2>,
+     <&prci 2>;
+   #address-cells = <1>;
+   #size-cells = <0>;
+   status = "disabled";
+  };
+  pwm0: pwm@10020000 {
+   compatible = "sifive,fu740-c000-pwm", "sifive,pwm0";
+   reg = <0x0 0x10020000 0x0 0x1000>;
+   interrupt-parent = <&plic0>;
+   interrupts = <44>, <45>, <46>, <47>;
+   clocks = <&prci 7>;
+   #pwm-cells = <3>;
+   status = "disabled";
+  };
+  pwm1: pwm@10021000 {
+   compatible = "sifive,fu740-c000-pwm", "sifive,pwm0";
+   reg = <0x0 0x10021000 0x0 0x1000>;
+   interrupt-parent = <&plic0>;
+   interrupts = <48>, <49>, <50>, <51>;
+   clocks = <&prci 7>;
+   #pwm-cells = <3>;
+   status = "disabled";
+  };
+  ccache: cache-controller@2010000 {
+   compatible = "sifive,fu740-c000-ccache", "cache";
+   cache-block-size = <64>;
+   cache-level = <2>;
+   cache-sets = <2048>;
+   cache-size = <2097152>;
+   cache-unified;
+   interrupt-parent = <&plic0>;
+   interrupts = <19>, <21>, <22>, <20>;
+   reg = <0x0 0x2010000 0x0 0x1000>;
+  };
+  gpio: gpio@10060000 {
+   compatible = "sifive,fu740-c000-gpio", "sifive,gpio0";
+   interrupt-parent = <&plic0>;
+   interrupts = <23>, <24>, <25>, <26>, <27>, <28>, <29>,
+         <30>, <31>, <32>, <33>, <34>, <35>, <36>,
+         <37>, <38>;
+   reg = <0x0 0x10060000 0x0 0x1000>;
+   gpio-controller;
+   #gpio-cells = <2>;
+   interrupt-controller;
+   #interrupt-cells = <2>;
+   clocks = <&prci 7>;
+   status = "disabled";
+  };
+  pcie@e00000000 {
+   compatible = "sifive,fu740-pcie";
+   #address-cells = <3>;
+   #size-cells = <2>;
+   #interrupt-cells = <1>;
+   reg = <0xe 0x00000000 0x0 0x80000000>,
+         <0xd 0xf0000000 0x0 0x10000000>,
+         <0x0 0x100d0000 0x0 0x1000>;
+   reg-names = "dbi", "config", "mgmt";
+   device_type = "pci";
+   dma-coherent;
+   bus-range = <0x0 0xff>;
+   ranges = <0x81000000 0x0 0x60080000 0x0 0x60080000 0x0 0x10000>,
+     <0x82000000 0x0 0x60090000 0x0 0x60090000 0x0 0xff70000>,
+     <0x82000000 0x0 0x70000000 0x0 0x70000000 0x0 0x10000000>,
+     <0xc3000000 0x20 0x00000000 0x20 0x00000000 0x20 0x00000000>;
+   num-lanes = <0x8>;
+   interrupts = <56>, <57>, <58>, <59>, <60>, <61>, <62>, <63>, <64>;
+   interrupt-names = "msi", "inta", "intb", "intc", "intd";
+   interrupt-parent = <&plic0>;
+   interrupt-map-mask = <0x0 0x0 0x0 0x7>;
+   interrupt-map = <0x0 0x0 0x0 0x1 &plic0 57>,
+     <0x0 0x0 0x0 0x2 &plic0 58>,
+     <0x0 0x0 0x0 0x3 &plic0 59>,
+     <0x0 0x0 0x0 0x4 &plic0 60>;
+   clock-names = "pcie_aux";
+   clocks = <&prci 8>;
+   pwren-gpios = <&gpio 5 0>;
+   reset-gpios = <&gpio 8 0>;
+   resets = <&prci 4>;
+   status = "okay";
+  };
+ };
+};
+# 5 "arch/riscv/boot/dts/sifive/hifive-unmatched-a00.dts" 2
+# 1 "./scripts/dtc/include-prefixes/dt-bindings/gpio/gpio.h" 1
+# 6 "arch/riscv/boot/dts/sifive/hifive-unmatched-a00.dts" 2
+# 1 "./scripts/dtc/include-prefixes/dt-bindings/interrupt-controller/irq.h" 1
+# 7 "arch/riscv/boot/dts/sifive/hifive-unmatched-a00.dts" 2
+# 1 "./scripts/dtc/include-prefixes/dt-bindings/leds/common.h" 1
+# 8 "arch/riscv/boot/dts/sifive/hifive-unmatched-a00.dts" 2
+# 1 "./scripts/dtc/include-prefixes/dt-bindings/pwm/pwm.h" 1
+# 9 "arch/riscv/boot/dts/sifive/hifive-unmatched-a00.dts" 2
+
+
+
+
+/ {
+ model = "SiFive HiFive Unmatched A00";
+ compatible = "sifive,hifive-unmatched-a00", "sifive,fu740-c000",
+       "sifive,fu740";
+
+ chosen {
+  stdout-path = "serial0";
+ };
+
+ cpus {
+  timebase-frequency = <1000000>;
+ };
+
+ memory@80000000 {
+  device_type = "memory";
+  reg = <0x0 0x80000000 0x4 0x00000000>;
+ };
+
+ hfclk: hfclk {
+  #clock-cells = <0>;
+  compatible = "fixed-clock";
+  clock-frequency = <26000000>;
+  clock-output-names = "hfclk";
+ };
+
+ rtcclk: rtcclk {
+  #clock-cells = <0>;
+  compatible = "fixed-clock";
+  clock-frequency = <1000000>;
+  clock-output-names = "rtcclk";
+ };
+
+ gpio-poweroff {
+  compatible = "gpio-poweroff";
+  gpios = <&gpio 2 1>;
+ };
+
+ led-controller-1 {
+  compatible = "pwm-leds";
+
+  led-d12 {
+   pwms = <&pwm0 0 7812500 (1 << 0)>;
+   active-low;
+   color = <2>;
+   max-brightness = <255>;
+   label = "d12";
+  };
+ };
+
+ led-controller-2 {
+  compatible = "pwm-leds-multicolor";
+
+  multi-led {
+   color = <9>;
+   max-brightness = <255>;
+   label = "d2";
+
+   led-red {
+    pwms = <&pwm0 2 7812500 (1 << 0)>;
+    active-low;
+    color = <1>;
+   };
+
+   led-green {
+    pwms = <&pwm0 1 7812500 (1 << 0)>;
+    active-low;
+    color = <2>;
+   };
+
+   led-blue {
+    pwms = <&pwm0 3 7812500 (1 << 0)>;
+    active-low;
+    color = <3>;
+   };
+  };
+ };
+};
+
+&uart0 {
+ status = "okay";
+};
+
+&uart1 {
+ status = "okay";
+};
+
+&i2c0 {
+ status = "okay";
+
+ temperature-sensor@4c {
+  compatible = "ti,tmp451";
+  reg = <0x4c>;
+  vcc-supply = <&vdd_bpro>;
+  interrupt-parent = <&gpio>;
+  interrupts = <6 8>;
+ };
+
+ eeprom@54 {
+  compatible = "microchip,24c02", "atmel,24c02";
+  reg = <0x54>;
+  vcc-supply = <&vdd_bpro>;
+  label = "board-id";
+  pagesize = <16>;
+  read-only;
+  size = <256>;
+ };
+
+ pmic@58 {
+  compatible = "dlg,da9063";
+  reg = <0x58>;
+  interrupt-parent = <&gpio>;
+  interrupts = <1 8>;
+  interrupt-controller;
+
+  onkey {
+   compatible = "dlg,da9063-onkey";
+  };
+
+  rtc {
+   compatible = "dlg,da9063-rtc";
+  };
+
+  watchdog {
+   compatible = "dlg,da9063-watchdog";
+  };
+
+  regulators {
+   vdd_bcore: bcores-merged {
+    regulator-min-microvolt = <1050000>;
+    regulator-max-microvolt = <1050000>;
+    regulator-min-microamp = <4800000>;
+    regulator-max-microamp = <4800000>;
+    regulator-always-on;
+   };
+
+   vdd_bpro: bpro {
+    regulator-min-microvolt = <1800000>;
+    regulator-max-microvolt = <1800000>;
+    regulator-min-microamp = <2400000>;
+    regulator-max-microamp = <2400000>;
+    regulator-always-on;
+   };
+
+   vdd_bperi: bperi {
+    regulator-min-microvolt = <1060000>;
+    regulator-max-microvolt = <1060000>;
+    regulator-min-microamp = <1500000>;
+    regulator-max-microamp = <1500000>;
+    regulator-always-on;
+   };
+
+   vdd_bmem_bio: bmem-bio-merged {
+    regulator-min-microvolt = <1200000>;
+    regulator-max-microvolt = <1200000>;
+    regulator-min-microamp = <3000000>;
+    regulator-max-microamp = <3000000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo1: ldo1 {
+    regulator-min-microvolt = <1800000>;
+    regulator-max-microvolt = <1800000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo2: ldo2 {
+    regulator-min-microvolt = <1800000>;
+    regulator-max-microvolt = <1800000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo3: ldo3 {
+    regulator-min-microvolt = <3300000>;
+    regulator-max-microvolt = <3300000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo4: ldo4 {
+    regulator-min-microvolt = <2500000>;
+    regulator-max-microvolt = <2500000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo5: ldo5 {
+    regulator-min-microvolt = <3300000>;
+    regulator-max-microvolt = <3300000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo6: ldo6 {
+    regulator-min-microvolt = <1800000>;
+    regulator-max-microvolt = <1800000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo7: ldo7 {
+    regulator-min-microvolt = <3300000>;
+    regulator-max-microvolt = <3300000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo8: ldo8 {
+    regulator-min-microvolt = <3300000>;
+    regulator-max-microvolt = <3300000>;
+    regulator-always-on;
+   };
+
+   vdd_ld09: ldo9 {
+    regulator-min-microvolt = <1050000>;
+    regulator-max-microvolt = <1050000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo10: ldo10 {
+    regulator-min-microvolt = <1000000>;
+    regulator-max-microvolt = <1000000>;
+    regulator-always-on;
+   };
+
+   vdd_ldo11: ldo11 {
+    regulator-min-microvolt = <2500000>;
+    regulator-max-microvolt = <2500000>;
+    regulator-always-on;
+   };
+  };
+ };
+};
+
+&qspi0 {
+ status = "okay";
+ flash@0 {
+  compatible = "jedec,spi-nor";
+  reg = <0>;
+  spi-max-frequency = <50000000>;
+  m25p,fast-read;
+  spi-tx-bus-width = <4>;
+  spi-rx-bus-width = <4>;
+ };
+};
+
+&spi0 {
+ status = "okay";
+ mmc@0 {
+  compatible = "mmc-spi-slot";
+  reg = <0>;
+  spi-max-frequency = <20000000>;
+  voltage-ranges = <3300 3300>;
+  disable-wp;
+  gpios = <&gpio 15 1>;
+ };
+};
+
+&eth0 {
+ status = "okay";
+ phy-mode = "gmii";
+ phy-handle = <&phy0>;
+ phy0: ethernet-phy@0 {
+  reg = <0>;
+ };
+};
+
+&pwm0 {
+ status = "okay";
+};
+
+&pwm1 {
+ status = "okay";
+};
+
+&gpio {
+ status = "okay";
+ gpio-line-names = "J29.1", "PMICNTB", "PMICSHDN", "J8.1", "J8.3",
+  "PCIe_PWREN", "THERM", "UBRDG_RSTN", "PCIe_PERSTN",
+  "ULPI_RSTN", "J8.2", "UHUB_RSTN", "GEMGXL_RST", "J8.4",
+  "EN_VDD_SD", "SD_CD";
+};

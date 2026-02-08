@@ -1,0 +1,1 @@
+savedcmd_drivers/usb/storage/built-in.a := rm -f drivers/usb/storage/built-in.a;  printf "drivers/usb/storage/%s " uas.o scsiglue.o protocol.o transport.o usb.o initializers.o sierra_ms.o option_ms.o usual-tables.o | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/usb/storage/built-in.a

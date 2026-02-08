@@ -1,0 +1,1 @@
+savedcmd_drivers/gpu/drm/renesas/built-in.a := rm -f drivers/gpu/drm/renesas/built-in.a;  printf "drivers/gpu/drm/renesas/%s " rcar-du/built-in.a | xargs riscv64-unknown-linux-gnu-ar cDPrST drivers/gpu/drm/renesas/built-in.a

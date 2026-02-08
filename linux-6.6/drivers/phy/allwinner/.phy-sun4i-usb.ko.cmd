@@ -1,0 +1,1 @@
+savedcmd_drivers/phy/allwinner/phy-sun4i-usb.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/phy/allwinner/phy-sun4i-usb.ko drivers/phy/allwinner/phy-sun4i-usb.o drivers/phy/allwinner/phy-sun4i-usb.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/phy/allwinner/phy-sun4i-usb.ko

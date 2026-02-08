@@ -1,0 +1,1 @@
+savedcmd_drivers/media/platform/nvidia/tegra-vde/built-in.a := rm -f drivers/media/platform/nvidia/tegra-vde/built-in.a;  riscv64-unknown-linux-gnu-ar cDPrST drivers/media/platform/nvidia/tegra-vde/built-in.a

@@ -1,0 +1,1 @@
+savedcmd_drivers/gpu/drm/sun4i/sun6i_mipi_dsi.ko := riscv64-unknown-linux-gnu-ld -r -melf64lriscv -z noexecstack --no-warn-rwx-segments --build-id=sha1  -T scripts/module.lds -o drivers/gpu/drm/sun4i/sun6i_mipi_dsi.ko drivers/gpu/drm/sun4i/sun6i_mipi_dsi.o drivers/gpu/drm/sun4i/sun6i_mipi_dsi.mod.o;  make -f ./arch/riscv/Makefile.postlink drivers/gpu/drm/sun4i/sun6i_mipi_dsi.ko

@@ -1,0 +1,6 @@
+mpfs-icicle-kit.o: arch/riscv/boot/dts/microchip/mpfs-icicle-kit.dts \
+ arch/riscv/boot/dts/microchip/mpfs.dtsi \
+ scripts/dtc/include-prefixes/dt-bindings/clock/microchip,mpfs-clock.h \
+ arch/riscv/boot/dts/microchip/mpfs-icicle-kit-fabric.dtsi \
+ scripts/dtc/include-prefixes/dt-bindings/gpio/gpio.h \
+ scripts/dtc/include-prefixes/dt-bindings/leds/common.h
