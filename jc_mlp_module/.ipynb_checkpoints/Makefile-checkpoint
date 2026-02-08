@@ -25,7 +25,7 @@ clean:
 # SCP传输模块（端口2222）
 scp-transfer: all
 	@echo "通过SCP传输模块到 $(SCP_USER)@$(SCP_HOST):$(REMOTE_DIR)/ (端口:$(SCP_PORT))"
-	scp -P $(SCP_PORT) jc_mlp_test_module.ko $(SCP_USER)@$(SCP_HOST):$(REMOTE_DIR)/
+	scp -P $(SCP_PORT) jc_mlp_module.ko $(SCP_USER)@$(SCP_HOST):$(REMOTE_DIR)/
 	@echo "✓ 传输完成"
 
 # 生成远程测试脚本
