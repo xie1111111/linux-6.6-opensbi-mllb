@@ -1,6 +1,7 @@
 *
 !linux-6.6/
-!opensbi/
+!opensbi-mle/
+!jc_mlp_module/
 !.gitignore
 # 编译生成的文件
 *.o
