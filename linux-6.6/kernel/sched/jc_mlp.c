@@ -171,7 +171,7 @@ static int forward_pass(dtype *input_data) {
     }
 
     // Layer 3: ReLU
-    ret = tensor_relu(out1);
+    ret = tensor_relu(out1,out1);
     if (ret.error) {
         pr_err("RVSML-MLLB: tensor_relu (layer 1) failed: %ld\n", ret.error);
         kfree(input);

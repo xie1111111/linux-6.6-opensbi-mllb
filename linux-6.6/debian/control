@@ -6,11 +6,11 @@ Rules-Requires-Root: no
 Build-Depends: bc, debhelper, rsync, kmod, cpio, bison, flex , , 
 Homepage: https://www.kernel.org/
 
-Package: linux-image-6.6.0-get-all-time-float
+Package: linux-image-6.6.0-rdcycle
 Architecture: riscv64
-Description: Linux kernel, version 6.6.0-get-all-time-float
+Description: Linux kernel, version 6.6.0-rdcycle
  This package contains the Linux kernel, modules and corresponding other
- files, version: 6.6.0-get-all-time-float.
+ files, version: 6.6.0-rdcycle.
 
 Package: linux-libc-dev
 Section: devel
@@ -21,9 +21,9 @@ Description: Linux support headers for userspace development
  are used by the installed headers for GNU glibc and other system libraries.
 Multi-Arch: same
 
-Package: linux-headers-6.6.0-get-all-time-float
+Package: linux-headers-6.6.0-rdcycle
 Architecture: riscv64
-Description: Linux kernel headers for 6.6.0-get-all-time-float on riscv64
- This package provides kernel header files for 6.6.0-get-all-time-float on riscv64
+Description: Linux kernel headers for 6.6.0-rdcycle on riscv64
+ This package provides kernel header files for 6.6.0-rdcycle on riscv64
  .
  This is useful for people who need to build external modules

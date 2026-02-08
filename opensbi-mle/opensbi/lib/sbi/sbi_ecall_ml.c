@@ -159,6 +159,7 @@ static inline int matmul(Tensor *dst, Tensor *src1, Tensor *src2, int use_fxdpt)
     // 2. 运行时模式切换（核心逻辑）
     if (use_fxdpt) {
         // ===================== 定点数模式（fxdpt_t）=====================
+        //sbi_printf("定点数模式\n");
         //sbi_printf("测试:\n%d",*((fxdpt_t *)src1->data));
         fxdpt_t *psrc1 = (fxdpt_t *)src1->data;
         /*if (*((fxdpt_t *)src1->data) == psrc1[0])

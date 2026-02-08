@@ -1,5 +1,5 @@
-linux-upstream (6.6.0-70) unstable; urgency=low
+linux-upstream (6.6.0-74) unstable; urgency=low
 
   * Custom built Linux kernel.
 
- -- root <root@autodl-container-42a44688ad-55d099d5>  Sat, 07 Feb 2026 21:17:04 +0800
+ -- root <root@autodl-container-42a44688ad-55d099d5>  Sun, 08 Feb 2026 16:30:59 +0800

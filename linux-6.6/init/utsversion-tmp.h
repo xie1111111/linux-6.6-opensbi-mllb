@@ -1,1 +1,1 @@
-#define UTS_VERSION "# SMP "
+#define UTS_VERSION "#74 SMP "

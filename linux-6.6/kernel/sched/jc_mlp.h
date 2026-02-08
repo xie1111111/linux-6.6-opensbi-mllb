@@ -77,8 +77,8 @@ static inline struct sbiret tensor_sub(Tensor *dst, Tensor *src1, Tensor *src2){
     return sbi_ecall(SBI_EXT_ML, SBI_EXT_ML_TENSOR_SUB, __pa(dst), __pa(src1), __pa(src2), 1, 0, 0);
 }
 
-static inline struct sbiret tensor_relu(Tensor *src) {
-    return sbi_ecall(SBI_EXT_ML, SBI_EXT_ML_RELU, __pa(src), 1, 0, 0, 0, 0);
+static inline struct sbiret tensor_relu(Tensor *dst, Tensor *src) {
+    return sbi_ecall(SBI_EXT_ML, SBI_EXT_ML_RELU, __pa(dst), __pa(src), 1, 0, 0, 0);
 }
 
 #else
@@ -103,8 +103,8 @@ static inline struct sbiret tensor_sub(Tensor *dst, Tensor *src1, Tensor *src2){
     return sbi_ecall(SBI_EXT_ML, SBI_EXT_ML_TENSOR_SUB, __pa(dst), __pa(src1), __pa(src2), 0, 0, 0);
 }
 
-static inline struct sbiret tensor_relu(Tensor *src) {
-    return sbi_ecall(SBI_EXT_ML, SBI_EXT_ML_RELU, __pa(src), 0, 0, 0, 0, 0);
+static inline struct sbiret tensor_relu(Tensor *dst, Tensor *src) {
+    return sbi_ecall(SBI_EXT_ML, SBI_EXT_ML_RELU, __pa(dst), __pa(src), 0, 0, 0, 0);
 }
 #endif  // JC_SCHED_FXDPT
 
