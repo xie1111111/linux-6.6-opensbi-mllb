@@ -95,7 +95,7 @@ void matmul_rvv(double *a, double *b, double *c, int n, int m, int p) {
     }
 }
 
-static inline int matmul(Tensor *dst, Tensor *src1, Tensor *src2, int use_fxdpt)
+static inline int matmul_1(Tensor *dst, Tensor *src1, Tensor *src2, int use_fxdpt)
 {
     int i, j, k;
     if (use_fxdpt) {
@@ -120,7 +120,7 @@ static inline int matmul(Tensor *dst, Tensor *src1, Tensor *src2, int use_fxdpt)
     return 0; // 成功返回0
 }
 
-static inline int matmul_yuan(Tensor *dst, Tensor *src1, Tensor *src2, int use_fxdpt)
+static inline int matmul(Tensor *dst, Tensor *src1, Tensor *src2, int use_fxdpt)
 {
     //asm volatile("fence iorw, iorw" ::: "memory");
     // 1. 通用参数校验（两种模式共用）
