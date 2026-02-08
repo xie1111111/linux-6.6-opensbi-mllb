@@ -1,8 +1,0 @@
-!<thin>
-//                                              48        `
-irqchip.o/
-irq-riscv-intc.o/
-irq-sifive-plic.o/
-/0              0           0     0     644     3912      `
-/11             0           0     0     644     9912      `
-/29             0           0     0     644     35856     `
