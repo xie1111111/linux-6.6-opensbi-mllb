@@ -1,6 +1,35 @@
 #ifndef _SCHED_JC_MLP_MODULE_H
 #define _SCHED_JC_MLP_MODULE_H
 
+// ========== 必需的内核头文件 ==========
+#include <linux/types.h>    // 必需：s32, s64类型定义
+#include <asm/io.h>         // 必需：__pa()宏
+#include <asm/sbi.h>        // 必需：struct sbiret和sbi_ecall()
+
+// ========== 自定义头文件 ==========
+#include "jc_sbi_ml_module.h"
+
+// ========== 调试宏 ==========
+#define JC_MLP_DEBUG 1  // 设为1启用调试，0禁用
+
+// ========== SBI错误码定义（与内核保持一致） ==========
+#ifndef SBI_ERR_FAILURE
+#define SBI_ERR_FAILURE            -1
+#define SBI_ERR_NOT_SUPPORTED      -2
+#define SBI_ERR_INVALID_PARAM      -3
+#define SBI_ERR_DENIED             -4
+#define SBI_ERR_INVALID_ADDRESS    -5
+#define SBI_ERR_ALREADY_AVAILABLE  -6
+#define SBI_ERR_ALREADY_STARTED    -7
+#define SBI_ERR_ALREADY_STOPPED    -8
+#endif
+
+// ========== SBI基础扩展定义 ==========
+#define SBI_EXT_BASE 0x10
+#define SBI_EXT_BASE_GET_SBI_VERSION 0
+#define SBI_EXT_BASE_PROBE_EXTENSION 3
+
+// ========== 原始SBI定义 ==========
 #define SBI_SET_TIMER 0
 #define SBI_CONSOLE_PUTCHAR 1
 #define SBI_CONSOLE_GETCHAR 2
@@ -10,12 +39,6 @@
 #define SBI_REMOTE_SFENCE_VMA 6
 #define SBI_REMOTE_SFENCE_VMA_ASID 7
 #define SBI_SHUTDOWN 8
-
-#include <linux/types.h>    // 必需：定义 s32, s64 等类型
-#include <asm/io.h>         // 必需：定义 __pa() 宏
-#include <linux/sched.h>
-#include <asm/sbi.h>
-#include "jc_sbi_ml_module.h"
 
 extern int is_jc_sched;
 
@@ -170,9 +193,22 @@ static inline struct sbiret tensor_basic_proposal(Tensor *dst, proposal_params_t
 }
 
 #define wfi()                                             \
-	do {                                              \
-		__asm__ __volatile__("wfi" ::: "memory"); \
-	} while (0)
+    do {                                              \
+        __asm__ __volatile__("wfi" ::: "memory"); \
+    } while (0)
 
+// ========== 调试辅助函数 ==========
+static inline const char *sbi_error_str(long error) {
+    switch (error) {
+        case 0: return "SBI_SUCCESS";
+        case SBI_ERR_FAILURE: return "SBI_ERR_FAILURE";
+        case SBI_ERR_NOT_SUPPORTED: return "SBI_ERR_NOT_SUPPORTED";
+        case SBI_ERR_INVALID_PARAM: return "SBI_ERR_INVALID_PARAM";
+        case SBI_ERR_DENIED: return "SBI_ERR_DENIED";
+        case SBI_ERR_INVALID_ADDRESS: return "SBI_ERR_INVALID_ADDRESS";
+        case SBI_ERR_ALREADY_AVAILABLE: return "SBI_ERR_ALREADY_AVAILABLE";
+        default: return "SBI_ERR_UNKNOWN";
+    }
+}
 
-#endif
+#endif /* _SCHED_JC_MLP_MODULE_H */

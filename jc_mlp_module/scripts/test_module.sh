@@ -4,7 +4,7 @@
 echo "=== JC_MLP模块测试脚本 ==="
 
 # 配置
-MODULE_NAME="jc_mlp_test_module"
+MODULE_NAME="jc_mlp_module"
 MODULE_FILE="./${MODULE_NAME}.ko"
 DEBUGFS_DIR="/sys/kernel/debug/jc_mlp"
 

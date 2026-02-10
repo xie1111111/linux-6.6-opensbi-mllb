@@ -1,11 +1,3 @@
-/* 
- * jc_mlp_test_module.c - 独立MLP测试模块
- * 
- * 功能：与jc_mlp.c相同的MLP推理功能，但作为独立模块
- * 使用方式：通过debugfs接口触发推理
- * 计时方式：使用rdcycle指令测量CPU周期
- */
-
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
@@ -17,8 +9,6 @@
 #include <linux/seq_file.h>
 #include <asm/io.h>
 #include <asm/page.h>
-#include <asm/sbi.h>
-#include "jc_sbi_ml_module.h"
 #include "jc_mlp_module.h"
 
 // ==================== 模块信息 ====================
@@ -27,16 +17,11 @@ MODULE_AUTHOR("Your Name");
 MODULE_DESCRIPTION("Standalone MLP Test Module");
 MODULE_VERSION("1.0");
 
-// ==================== 配置选择 ====================
-// 根据您的需求选择配置（二选一）
-#define CONFIG_JC_SCHED_FXDPT  // 使用定点数
-// #undef CONFIG_JC_SCHED_FXDPT  // 使用浮点数
-
 // ==================== 参数定义 ====================
 #define NR_FEAT     15  // 特征数量
 #define ftod(F)     ftodtype(F)
 // ==================== 全局变量 ====================
-// 权重和偏置数组（来自原始jc_mlp.c）
+// 权重和偏置数组（保持与原始jc_mlp.c相同）
 static dtype w1[] = {
     ftod(0.565644),  ftod(0.384824), ftod(-0.042528), ftod(-0.264426),  ftod(0.472312),
     ftod(-0.282259), ftod(-0.014167), ftod(-0.528233),  ftod(0.622656), ftod(-0.373769),
@@ -104,14 +89,46 @@ static struct dentry *jc_mlp_run_file;
 static struct dentry *jc_mlp_stats_file;
 
 // ==================== 辅助函数 ====================
-// 读取cycle计数器（使用rdcycle指令）
+// 读取cycle计数器
 static inline unsigned long long rdcycle_read(void) {
     unsigned long long cycles;
-    asm volatile ("rdcycle %0" : "=r" (cycles));
+    // 使用memory clobber防止优化
+    asm volatile (
+        "rdcycle %0\n"
+        : "=r"(cycles)
+        : 
+        : "memory"
+    );
     return cycles;
 }
 
-// 初始化共享内存
+// SBI扩展测试函数
+static void test_sbi_ml_extension(void) {
+    struct sbiret ret;
+    
+    pr_info("=== SBI环境测试 ===\n");
+    
+    // 测试SBI基础扩展
+    ret = sbi_ecall(SBI_EXT_BASE, SBI_EXT_BASE_GET_SBI_VERSION, 
+                    0, 0, 0, 0, 0, 0);
+    pr_info("SBI版本测试: error=%s, value=%lx\n", 
+           sbi_error_str(ret.error), ret.value);
+    
+    // 探测ML扩展
+    ret = sbi_ecall(SBI_EXT_BASE, SBI_EXT_BASE_PROBE_EXTENSION,
+                    SBI_EXT_ML, 0, 0, 0, 0, 0);
+    pr_info("ML扩展探测: error=%s, value=%ld (1=存在, 0=不存在)\n", 
+           sbi_error_str(ret.error), ret.value);
+    
+    if (ret.value != 1) {
+        pr_err("❌ SBI ML扩展不可用！这是Matmul错误的根本原因。\n");
+        pr_err("   请检查QEMU是否启用了ML扩展，或OpenSBI是否编译了ML支持。\n");
+    } else {
+        pr_info("✅ SBI ML扩展可用\n");
+    }
+}
+
+// 初始化共享内存 - 关键修复部分
 static int jc_mlp_sched_init(void) {
     if (READ_ONCE(ml_shared_inited)) {
         return 0;
@@ -119,20 +136,51 @@ static int jc_mlp_sched_init(void) {
     
     memset(&ml_shared, 0, sizeof(struct ml_shared_mem));
     
-    // 使用create_tensor4d宏初始化Tensor结构
-    create_tensor4d(ml_shared.t_W1, __pa(w1), 1, NR_FEAT, 10, 1);
+    // 关键修复：正确设置Tensor形状
+    // 注意：create_tensor4d参数顺序是(tensor, data, N, H, W, C)
+    
+    // W1: 15x10权重矩阵 [N=1, H=15, W=10, C=1]
+    // 您的w1数组有150个元素，应该是15行×10列
+    create_tensor4d(ml_shared.t_W1, __pa(w1), 1, 15, 10, 1);
+    
+    // B1: 10维偏置向量 [N=1, H=1, W=10, C=1]
     create_tensor4d(ml_shared.t_B1, __pa(b1), 1, 1, 10, 1);
+    
+    // W2: 10x1权重矩阵 [N=1, H=10, W=1, C=1]
     create_tensor4d(ml_shared.t_W2, __pa(w2), 1, 10, 1, 1);
+    
+    // B2: 1维标量 [N=1, H=1, W=1, C=1]
     create_tensor4d(ml_shared.t_B2, __pa(b2), 1, 1, 1, 1);
     
     WRITE_ONCE(ml_shared_inited, 1);
-    pr_info("JC_MLP_TEST: Shared memory initialized (using %s)\n", 
-           #ifdef CONFIG_JC_SCHED_FXDPT
-           "fixed-point"
-           #else
-           "floating-point"
-           #endif
-    );
+    
+    // 详细调试信息
+    pr_info("JC_MLP_TEST: Tensor形状设置:\n");
+    pr_info("  W1: [%d,%d,%d,%d] (应有150元素，实际%d)\n",
+           ml_shared.t_W1.shape[0], ml_shared.t_W1.shape[1],
+           ml_shared.t_W1.shape[2], ml_shared.t_W1.shape[3],
+           ml_shared.t_W1.size);
+    pr_info("  B1: [%d,%d,%d,%d]\n",
+           ml_shared.t_B1.shape[0], ml_shared.t_B1.shape[1],
+           ml_shared.t_B1.shape[2], ml_shared.t_B1.shape[3]);
+    pr_info("  W2: [%d,%d,%d,%d] (应有10元素，实际%d)\n",
+           ml_shared.t_W2.shape[0], ml_shared.t_W2.shape[1],
+           ml_shared.t_W2.shape[2], ml_shared.t_W2.shape[3],
+           ml_shared.t_W2.size);
+    pr_info("  B2: [%d,%d,%d,%d]\n",
+           ml_shared.t_B2.shape[0], ml_shared.t_B2.shape[1],
+           ml_shared.t_B2.shape[2], ml_shared.t_B2.shape[3]);
+    
+    // 验证物理地址
+    pr_info("JC_MLP_TEST: 物理地址验证:\n");
+    pr_info("  w1数组: va=%p, pa=%lx\n", w1, __pa(w1));
+    pr_info("  &ml_shared.t_W1: va=%p, pa=%lx\n", 
+            &ml_shared.t_W1, __pa(&ml_shared.t_W1));
+    pr_info("  W1行地址: va=%p, pa=%lx\n",
+            &ml_shared.t_W1.shape[1], __pa(&ml_shared.t_W1.shape[1]));
+    pr_info("  W2行地址: va=%p, pa=%lx\n",
+            &ml_shared.t_W2.shape[1], __pa(&ml_shared.t_W2.shape[1]));
+    
     return 0;
 }
 
@@ -142,8 +190,19 @@ static int forward_pass(dtype *input_data) {
     dtype *o1, *o2;
     Tensor *input, *out1, *out2;
     unsigned long long start_cycles, end_cycles;
+    int result = 0;
     
-    // 记录开始时间
+    // 验证rdcycle是否工作
+    unsigned long long test1 = rdcycle_read();
+    for (int i = 0; i < 100; i++) {
+        asm volatile("nop");
+    }
+    unsigned long long test2 = rdcycle_read();
+    pr_debug("JC_MLP_DEBUG: rdcycle测试: %llu -> %llu (delta=%llu)\n",
+             test1, test2, test2 - test1);
+    
+    // 开始测量
+    barrier();
     start_cycles = rdcycle_read();
     
     // 动态分配内存
@@ -154,63 +213,99 @@ static int forward_pass(dtype *input_data) {
     out2 = kmalloc(sizeof(Tensor), GFP_KERNEL);
     
     if (!o1 || !o2 || !input || !out1 || !out2) {
-        pr_err("JC_MLP_TEST: kmalloc failed\n");
+        pr_err("JC_MLP_TEST: kmalloc失败\n");
         kfree(o1); kfree(o2); kfree(input); kfree(out1); kfree(out2);
         return -1;
     }
     
     // 初始化Tensor
+    // 输入: [1, 1, 15, 1] (1行15列)
     create_tensor4d(*input, __pa(input_data), 1, 1, NR_FEAT, 1);
     create_tensor4d(*out1, __pa(o1), 1, 1, 10, 1);
     create_tensor4d(*out2, __pa(o2), 1, 1, 1, 1);
     
-    // Layer 1: Matmul (input * W1)
+    pr_debug("JC_MLP_DEBUG: 输入形状: [%d,%d,%d,%d]\n",
+            input->shape[0], input->shape[1], 
+            input->shape[2], input->shape[3]);
+    
+    // Layer 1: Matmul (输入 * W1)
+    pr_debug("JC_MLP_DEBUG: 执行第一层Matmul...\n");
+    pr_info("matmul第三个参数的全部内容1:\ndata地址:%p\nshape:[%d,%d,%d,%d]\nsize:%d\n",
+            ml_shared.t_W1.data,ml_shared.t_W1.shape[0],ml_shared.t_W1.shape[1],
+            ml_shared.t_W1.shape[2],ml_shared.t_W1.shape[3],ml_shared.t_W1.size);
     ret = matmul(out1, input, &ml_shared.t_W1);
+    pr_info("matmul第三个参数的全部内容2:\ndata地址:%p\nshape:[%d,%d,%d,%d]\nsize:%d\n",
+            ml_shared.t_W1.data,ml_shared.t_W1.shape[0],ml_shared.t_W1.shape[1],
+            ml_shared.t_W1.shape[2],ml_shared.t_W1.shape[3],ml_shared.t_W1.size);
     if (ret.error) {
-        pr_err("JC_MLP_TEST: matmul (layer 1) failed: %ld\n", ret.error);
+        pr_err("JC_MLP_TEST: matmul (layer 1)失败: %s (error=%ld, value=%ld)\n", 
+               sbi_error_str(ret.error), ret.error, ret.value);
+        pr_err("JC_MLP_TEST: 输入列数=%d, W1行数=%d\n",
+               input->shape[2], ml_shared.t_W1.shape[1]);
         goto cleanup;
     }
     
-    // Layer 2: Add Bias (out1 + B1)
+    // Layer 2: Add Bias
+    pr_debug("JC_MLP_DEBUG: 执行第一层偏置...\n");
     ret = tensor_add(out1, out1, &ml_shared.t_B1);
     if (ret.error) {
-        pr_err("JC_MLP_TEST: tensor_add (layer 1 bias) failed: %ld\n", ret.error);
+        pr_err("JC_MLP_TEST: tensor_add (layer 1 bias)失败: %s\n", 
+               sbi_error_str(ret.error));
         goto cleanup;
     }
     
-    // Layer 3: ReLU activation
-    // 注意：根据jc_mlp.h，tensor_relu需要两个参数(dst, src)
+    // Layer 3: ReLU
+    pr_debug("JC_MLP_DEBUG: 执行ReLU激活...\n");
     ret = tensor_relu(out1, out1);
     if (ret.error) {
-        pr_err("JC_MLP_TEST: tensor_relu (layer 1) failed: %ld\n", ret.error);
+        pr_err("JC_MLP_TEST: tensor_relu失败: %s\n", sbi_error_str(ret.error));
         goto cleanup;
     }
     
     // Layer 4: Matmul (out1 * W2)
+    pr_debug("JC_MLP_DEBUG: 执行第二层Matmul...\n");
     ret = matmul(out2, out1, &ml_shared.t_W2);
     if (ret.error) {
-        pr_err("JC_MLP_TEST: matmul (layer 4) failed: %ld\n", ret.error);
+        pr_err("JC_MLP_TEST: matmul (layer 2)失败: %s (error=%ld, value=%ld)\n", 
+               sbi_error_str(ret.error), ret.error, ret.value);
+        pr_err("JC_MLP_TEST: out1列数=%d, W2行数=%d\n",
+               out1->shape[2], ml_shared.t_W2.shape[1]);
         goto cleanup;
     }
     
-    // Layer 5: Add Bias (out2 + B2)
+    // Layer 5: Add Bias
+    pr_debug("JC_MLP_DEBUG: 执行第二层偏置...\n");
     ret = tensor_add(out2, out2, &ml_shared.t_B2);
     if (ret.error) {
-        pr_err("JC_MLP_TEST: tensor_add (layer 5 bias) failed: %ld\n", ret.error);
+        pr_err("JC_MLP_TEST: tensor_add (layer 2 bias)失败: %s\n", 
+               sbi_error_str(ret.error));
         goto cleanup;
     }
     
-    // 记录结束时间并更新统计
+    // 结束测量
     end_cycles = rdcycle_read();
-    atomic64_inc(&forward_pass_count);
-    atomic64_add(end_cycles - start_cycles, &forward_pass_total_cycles);
+    barrier();
+    
+    unsigned long long elapsed = end_cycles - start_cycles;
     
     // 获取结果
     dtype final_output = o2[0];
-    int result = final_output > ftod(0.5) ? 1 : 0;
+    result = final_output > ftod(0.5) ? 1 : 0;
     
-    pr_debug("JC_MLP_TEST: forward_pass completed in %llu cycles, result=%d\n", 
-            end_cycles - start_cycles, result);
+    pr_info("JC_MLP_TEST: forward_pass完成, 耗时=%llu cycles, 结果=%d, 输出值=%d\n", 
+            elapsed, result, (int)final_output);
+    
+    // 如果elapsed为0，可能是QEMU限制
+    if (elapsed == 0) {
+        pr_warn("JC_MLP_TEST: 警告: cycle计数为0。可能是:\n");
+        pr_warn("  1. QEMU未模拟cycle计数器\n");
+        pr_warn("  2. SBI调用失败导致提前返回\n");
+        pr_warn("  3. 代码被编译器优化\n");
+    }
+    
+    // 更新统计
+    atomic64_inc(&forward_pass_count);
+    atomic64_add(elapsed, &forward_pass_total_cycles);
     
 cleanup:
     // 清理内存
@@ -224,24 +319,26 @@ int jc_mlp_main(void) {
     int result;
     dtype *input;
     
+    pr_info("JC_MLP_TEST: 开始MLP推理...\n");
+    
     // 1. 确保共享内存已初始化
     if (jc_mlp_sched_init() != 0) {
-        pr_err("JC_MLP_TEST: Initialization failed\n");
+        pr_err("JC_MLP_TEST: 初始化失败\n");
         return -1;
     }
     
     // 2. 分配输入内存
     input = kmalloc(sizeof(dtype) * NR_FEAT, GFP_KERNEL);
     if (!input) {
-        pr_err("JC_MLP_TEST: Failed to allocate input\n");
+        pr_err("JC_MLP_TEST: 无法分配输入内存\n");
         return -1;
     }
     
-    // 3. 生成测试输入数据（固定值，您可以根据需要修改）
-    // 注意：这些值只是示例，您应该根据实际需求调整
+    // 3. 生成测试输入数据
+    pr_debug("JC_MLP_TEST: 准备测试输入...\n");
     input[0] = itodtype(10);   // src_non_pref
     input[1] = itodtype(5);    // delta_hot
-    input[2] = itodtype(3);    // cpu_idle (如果是定点数，0.3可能需要缩放)
+    input[2] = itodtype(3);    // cpu_idle (定点数表示0.3)
     input[3] = itodtype(7);    // cpu_not_idle
     input[4] = itodtype(2);    // cpu_newly_idle
     input[5] = itodtype(1);    // same_node
@@ -251,7 +348,7 @@ int jc_mlp_main(void) {
     input[9] = itodtype(50);   // src_load / 1000
     input[10] = itodtype(30);  // dst_load / 1000
     input[11] = itodtype(4);   // dst_len
-    input[12] = itodtype(1);   // delta_faults (0.1 * 10，如果是定点数)
+    input[12] = itodtype(1);   // delta_faults (定点数表示0.1)
     input[13] = itodtype(2);   // extra_fails
     input[14] = itodtype(1);   // buddy_hot
     
@@ -261,7 +358,6 @@ int jc_mlp_main(void) {
     // 5. 释放输入内存
     kfree(input);
     
-    // 6. 打印结果
     pr_info("JC_MLP_TEST: MLP推理完成，结果: %d (1=迁移, 0=不迁移)\n", result);
     
     return result;
@@ -269,15 +365,14 @@ int jc_mlp_main(void) {
 EXPORT_SYMBOL(jc_mlp_main);
 
 // ==================== DebugFS接口 ====================
-// "run"文件的写回调：触发一次MLP推理
 static ssize_t jc_mlp_run_write(struct file *file, const char __user *buf,
                                 size_t count, loff_t *ppos)
 {
     int result;
     char cmd;
     
-    if (count != 1) {
-        pr_err("JC_MLP_TEST: 期望单个字符 '1'\n");
+    if (count == 0 || count > 2) {
+        pr_err("JC_MLP_TEST: 期望1-2个字符\n");
         return -EINVAL;
     }
     
@@ -285,20 +380,20 @@ static ssize_t jc_mlp_run_write(struct file *file, const char __user *buf,
         return -EFAULT;
     }
     
+    // 接受"1"或"1\n"
     if (cmd != '1') {
-        pr_err("JC_MLP_TEST: 只接受 '1'\n");
+        pr_err("JC_MLP_TEST: 只接受'1' (收到0x%x)\n", cmd);
         return -EINVAL;
     }
     
     // 执行MLP推理
     result = jc_mlp_main();
     
-    pr_info("JC_MLP_TEST: DebugFS触发MLP执行，结果=%d\n", result);
+    pr_info("JC_MLP_TEST: DebugFS触发推理，结果=%d\n", result);
     
-    return count;
+    return count;  // 返回处理的字符数
 }
 
-// "run"文件的读回调：显示使用说明
 static ssize_t jc_mlp_run_read(struct file *file, char __user *buf,
                                size_t count, loff_t *ppos)
 {
@@ -306,7 +401,6 @@ static ssize_t jc_mlp_run_read(struct file *file, char __user *buf,
     return simple_read_from_buffer(buf, count, ppos, msg, strlen(msg));
 }
 
-// "stats"文件的读回调：显示统计信息
 static int jc_mlp_stats_show(struct seq_file *m, void *v)
 {
     u64 count = atomic64_read(&forward_pass_count);
@@ -320,9 +414,14 @@ static int jc_mlp_stats_show(struct seq_file *m, void *v)
         seq_printf(m, "总消耗CPU周期: %llu\n", total_cycles);
         seq_printf(m, "平均每次推理周期: %llu\n", total_cycles / count);
         
-        // 可选：转换为时间（假设CPU频率为1GHz）
-        // seq_printf(m, "平均每次推理时间: %llu ns\n", 
-        //           (total_cycles / count) * 1000 / 1000000);
+        // 如果平均周期为0，显示警告
+        if (total_cycles / count == 0) {
+            seq_printf(m, "\n⚠️  警告: 平均周期为0\n");
+            seq_printf(m, "可能原因:\n");
+            seq_printf(m, "1. QEMU未模拟cycle计数器\n");
+            seq_printf(m, "2. SBI调用失败\n");
+            seq_printf(m, "3. 代码被优化\n");
+        }
     } else {
         seq_printf(m, "尚未执行任何推理\n");
     }
@@ -340,7 +439,6 @@ static int jc_mlp_stats_open(struct inode *inode, struct file *file)
     return single_open(file, jc_mlp_stats_show, NULL);
 }
 
-// 文件操作结构体
 static const struct file_operations jc_mlp_run_fops = {
     .owner = THIS_MODULE,
     .read = jc_mlp_run_read,
@@ -360,13 +458,16 @@ static int __init jc_mlp_test_init(void)
 {
     pr_info("JC_MLP_TEST: 模块加载中...\n");
     
-    // 初始化共享内存
+    // 1. 首先测试SBI环境
+    test_sbi_ml_extension();
+    
+    // 2. 初始化共享内存
     if (jc_mlp_sched_init() != 0) {
         pr_err("JC_MLP_TEST: 共享内存初始化失败\n");
         return -ENOMEM;
     }
     
-    // 创建debugfs目录和文件
+    // 3. 创建debugfs目录和文件
     jc_mlp_dir = debugfs_create_dir("jc_mlp", NULL);
     if (!jc_mlp_dir) {
         pr_err("JC_MLP_TEST: 创建debugfs目录失败\n");
@@ -385,7 +486,7 @@ static int __init jc_mlp_test_init(void)
     pr_info("JC_MLP_TEST: 模块加载成功\n");
     pr_info("JC_MLP_TEST: Debugfs接口位于 /sys/kernel/debug/jc_mlp/\n");
     
-    // 执行一次初始测试（可选）
+    // 4. 执行一次初始测试
     pr_info("JC_MLP_TEST: 执行初始测试推理...\n");
     int result = jc_mlp_main();
     pr_info("JC_MLP_TEST: 初始测试结果: %d\n", result);
@@ -400,10 +501,17 @@ static void __exit jc_mlp_test_exit(void)
     u64 total_count = atomic64_read(&forward_pass_count);
     u64 total_cycles = atomic64_read(&forward_pass_total_cycles);
     
+    pr_info("JC_MLP_TEST: 最终统计:\n");
+    pr_info("  总推理次数: %llu\n", total_count);
+    
     if (total_count > 0) {
-        pr_info("JC_MLP_TEST: 最终统计 - 总推理次数: %llu, "
-               "总周期数: %llu, 平均: %llu 周期/次\n",
-               total_count, total_cycles, total_cycles / total_count);
+        pr_info("  总周期数: %llu\n", total_cycles);
+        pr_info("  平均周期/次: %llu\n", total_cycles / total_count);
+        
+        if (total_cycles / total_count == 0) {
+            pr_warn("JC_MLP_TEST: 注意: 平均周期为0\n");
+            pr_warn("  这可能表明QEMU未正确模拟cycle计数器，或SBI调用失败\n");
+        }
     }
     
     // 清理debugfs
@@ -415,6 +523,5 @@ static void __exit jc_mlp_test_exit(void)
     pr_info("JC_MLP_TEST: 模块卸载完成\n");
 }
 
-// ==================== 注册模块 ====================
 module_init(jc_mlp_test_init);
 module_exit(jc_mlp_test_exit);
