@@ -174,8 +174,16 @@ static int jc_mlp_sched_init(void) {
     // 验证物理地址
     pr_info("JC_MLP_TEST: 物理地址验证:\n");
     pr_info("  w1数组: va=%p, pa=%lx\n", w1, __pa(w1));
+    void *a=(void *)__pa(w1);
+    unsigned long int b=__pa(w1);
+    void *c=(void *)__pa(w2);
+    unsigned long int d=__pa(w2);
+    pr_info("  测试是否是void*的问题：\n");
+    pr_info("  w1数组:\nvoid *强制转换后:%p\nvoid *强制转换前:%lx\n",a,b);
+    pr_info("  w2数组:\nvoid *强制转换后:%p\nvoid *强制转换前:%lx\n",c,d);
     pr_info("  &ml_shared.t_W1: va=%p, pa=%lx\n", 
             &ml_shared.t_W1, __pa(&ml_shared.t_W1));
+    pr_info("  ml_shared.t_W1.data: %p\n",ml_shared.t_W1.data);
     pr_info("  W1行地址: va=%p, pa=%lx\n",
             &ml_shared.t_W1.shape[1], __pa(&ml_shared.t_W1.shape[1]));
     pr_info("  W2行地址: va=%p, pa=%lx\n",
@@ -264,6 +272,9 @@ static int forward_pass(dtype *input_data) {
     
     // Layer 4: Matmul (out1 * W2)
     pr_debug("JC_MLP_DEBUG: 执行第二层Matmul...\n");
+    pr_info("第二次matmul第三个参数的全部内容1:\ndata地址:%p\nshape:[%d,%d,%d,%d]\nsize:%d\n",
+            ml_shared.t_W2.data,ml_shared.t_W2.shape[0],ml_shared.t_W2.shape[1],
+            ml_shared.t_W2.shape[2],ml_shared.t_W2.shape[3],ml_shared.t_W2.size);
     ret = matmul(out2, out1, &ml_shared.t_W2);
     if (ret.error) {
         pr_err("JC_MLP_TEST: matmul (layer 2)失败: %s (error=%ld, value=%ld)\n", 
