@@ -33,6 +33,46 @@ dtype w2[] = { ftod(-0.409050), ftod(-0.578690), ftod(-0.446989), ftod(0.361227)
 dtype b2[] = { ftod(0.405319) };
 // void my_printf(const char *format, ...);
 // void printf(const char *format, ...);
+
+#define m2d(x, i, j)    ((x)->values[i * (x)->ncol + j])
+#define m1d(x, i)       ((x)->values[i])
+#define _ReLU(x)        (x > 0 ?  x : 0)
+#define ftox(f)         (*(unsigned *)&((float){f}))
+
+struct matrix {
+    int nrow;
+    int ncol;
+    dtype *values;
+};
+
+static inline void matmul_mllb(struct matrix *X, struct matrix *Y, struct matrix *Z) 
+{
+    int i, j, k;
+    for(i = 0; i < X->nrow; i++)
+        for(j = 0; j < Y->ncol; j++)
+            for(k = 0; k < X->ncol; k++)
+            {
+                m2d(Z, i, j) = m2d(Z, i, j) + dtype_mul(m2d(X, i, k), m2d(Y, k, j));
+            }
+}
+
+static inline void matadd(struct matrix *X, struct matrix *Y, struct matrix *Z)
+{
+    int i;
+    for (i = 0; i < X->nrow * X->ncol; i++) {
+        Z->values[i] = X->values[i] + Y->values[i];
+    }
+}
+
+static inline void ReLU(struct matrix *X)
+{
+    int i;
+    for (i = 0; i < X->nrow * X->ncol; i++) {
+        X->values[i] = _ReLU(X->values[i]);
+    }
+}
+
+
 int putchar(int c) {
     SBI_PUTCHAR(c);
     return 1;
@@ -141,6 +181,31 @@ void print_k(fxdpt_t *a,int size,const char *label){
     puts("]\n");
 }
 
+// 实现无符号 32 位十六进制打印函数
+void print_hex(u32 val) {
+    char hex[11];        // "0x" + 8 digits + '\0'
+    hex[0] = '0';
+    hex[1] = 'x';
+    hex[10] = '\0';
+
+    for (int i = 9; i >= 2; i--) {
+        u32 digit = val & 0xF;
+        hex[i] = (digit < 10) ? ('0' + digit) : ('A' + digit - 10);
+        val >>= 4;
+    }
+    puts(hex);
+}
+
+void print_u64(unsigned long val) {
+    u32 high = (u32)(val >> 32);
+    u32 low  = (u32)val;
+    if (high != 0) {
+        print_hex(high);
+        putchar('_');   // 分隔高32位和低32位
+    }
+    print_hex(low);
+}
+
 void print_tensor_data(Tensor *tensor, const char *label) {//用于打印Tensor结构体中data数据
     if (tensor->data) {
         // 适配float16_t转float打印
@@ -149,6 +214,36 @@ void print_tensor_data(Tensor *tensor, const char *label) {//用于打印Tensor�
         puts(label);
         puts(": NULL data\n");
     }
+}
+
+void ulltoa(unsigned long long num, char *str) {
+    int i = 0;
+    if (num == 0) {
+        str[i++] = '0';
+        str[i] = '\0';
+        return;
+    }
+    while (num != 0) {
+        int rem = num % 10;
+        str[i++] = rem + '0';
+        num /= 10;
+    }
+    str[i] = '\0';
+    // 反转字符串
+    int start = 0, end = i - 1;
+    while (start < end) {
+        char tmp = str[start];
+        str[start] = str[end];
+        str[end] = tmp;
+        start++;
+        end--;
+    }
+}
+
+void print_dec_u64(unsigned long val) {
+    char buf[24];          // 64位最大值 18446744073709551615 共20位
+    ulltoa(val, buf);
+    puts(buf);
 }
 
 void test_matmul1();
@@ -162,6 +257,7 @@ void main(unsigned int a0, unsigned int a1) {
     dtype input[NR_FEAT] = {
         ftod(1),ftod(0),ftod(0),ftod(0),ftod(1),ftod(0),ftod(0),ftod(0),ftod(0),ftod(0.008),ftod(0.009000000000000001),ftod(0),ftod(0.0),ftod(0),ftod(0)
     };      // 定点数格式
+    dtype output;
     dtype o1[10];              // 第一层输出定点数格式
     dtype o2[1];
     char str[20]; // 假设数字最多20位
@@ -185,32 +281,60 @@ void main(unsigned int a0, unsigned int a1) {
     create_tensor4d(B2, b2, 1, 1, 1, 1);
     create_tensor4d(out2, o2, 1, 1, 1, 1);
     puts("=============================\n");
+    unsigned long int x=(unsigned long int)W1.data;
+    u32 high = (u32)(x >> 32);
+    u32 low  = (u32)x;
+    puts("Address high 32-bit: ");
+    print_hex(high);
+    puts("\nAddress low 32-bit: ");
+    print_hex(low);
+    puts("\n");
     ret = matmul(&out1,&t_input,&W1,1);
     ret = matmul(&out1,&t_input,&W1,1);
     ret = matmul(&out1,&t_input,&W1,1);
     puts("=============================\n");
     //print_k((&out1)->data);
-    print_tensor_data(&out1, "answer");
-    if(ret.error ==  -1){         
-        puts("error\n");     
-    }
+    //print_tensor_data(&out1, "answer");
+    unsigned long start_cycle, end_cycle, diff_cycle;
+    asm volatile("rdcycle %0" : "=r"(start_cycle));
+    ret = matmul(&out1,&t_input,&W1,1);
     ret = tensor_add(&out1, &out1, &B1,1);
-    if(ret.error ==  -1){         
-        puts("error\n");     
-    }
     ret = tensor_relu(&out1, &out1,1);
-    if(ret.error ==  -1){         
-        puts("error\n");     
-    }
     ret = matmul(&out2, &out1, &W2,1);
-    if(ret.error ==  -1){         
-        puts("error\n");     
-    }
     ret = tensor_add(&out2, &out2, &B2,1);
-    if(ret.error ==  -1){
-        puts("error\n");
-    }
-    print_tensor_data(&out2,"answer_finnal");
+    asm volatile("rdcycle %0" : "=r"(end_cycle));
+    diff_cycle = end_cycle - start_cycle;
+    puts("Forward pass cycles (decimal)(opensbi): ");
+    print_dec_u64(diff_cycle);   // 十进制打印
+    puts("\n");
+    //print_tensor_data(&out2,"answer_finnal");
+    struct matrix input_mllb = {1, NR_FEAT, NULL};
+    struct matrix W1_mllb = {NR_FEAT, 10, w1};
+    struct matrix out1_mllb = {1, 10, o1};
+    struct matrix B1_mllb = {1, 10, b1};
+    struct matrix W2_mllb = {10, 1, w2};
+    struct matrix out2_mllb = {1, 1, o2};
+    struct matrix B2_mllb = {1, 1, b2};
+    
+    input_mllb.values=input;
+    unsigned long start_cycle_1, end_cycle_1, diff_cycle_1;
+    asm volatile("rdcycle %0" : "=r"(start_cycle_1));
+    matmul_mllb(&input_mllb, &W1_mllb, &out1_mllb);
+
+    matadd(&out1_mllb, &B1_mllb, &out1_mllb);
+
+    ReLU(&out1_mllb);
+
+    matmul_mllb(&out1_mllb, &W2_mllb, &out2_mllb);
+
+    matadd(&out2_mllb, &B2_mllb, &out2_mllb);
+
+    output = m1d(&out2_mllb, 0);
+    asm volatile("rdcycle %0" : "=r"(end_cycle_1));
+    diff_cycle_1 = end_cycle_1 - start_cycle_1;
+    puts("Forward pass cycles (decimal)(MLLB): ");
+    print_dec_u64(diff_cycle_1);   // 十进制打印
+    puts("\n");
     #endif
     // clear();
     shutdown();

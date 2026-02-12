@@ -130,7 +130,6 @@ static inline int matmul(Tensor *dst, Tensor *src1, Tensor *src2, int use_fxdpt)
     //sbi_printf("地址%p\n",src1->shape+2);
     //sbi_printf("1\n");
     int h1 = src1->shape[1];  // 矩阵1的行
-    //sbi_printf("2\n");
     int w1 = src1->shape[2];  // 矩阵1的列
     int h2 = src2->shape[1];  // 矩阵2的行
     int w2 = src2->shape[2];  // 矩阵2的列
@@ -144,6 +143,9 @@ static inline int matmul(Tensor *dst, Tensor *src1, Tensor *src2, int use_fxdpt)
     // 矩阵乘法合法性校验：矩阵1的列必须等于矩阵2的行
     if (w1 != h2) {
         sbi_printf("Matmul error: src1 cols(%d) != src2 rows(%d)\n", w1, h2);
+        sbi_printf("src中存储的全部内容:\ndata地址:%p\nshape:[%d,%d,%d,%d]\nsize:%d\n",
+                   src2->data,src2->shape[0],src2->shape[1],src2->shape[2],src2->shape[3],src2->size);
+        sbi_printf("h2的地址:%p\n",&src2->shape[1]);
         return -1;
     }
 
