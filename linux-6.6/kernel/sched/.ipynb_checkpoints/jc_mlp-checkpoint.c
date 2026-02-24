@@ -84,17 +84,9 @@ static void enable_cycle_counter_on_cpu(void *info)
 
     pr_info("RVSML-MLLB: CPU%d: Attempting to enable cycle counter...\n", cpu);
 
-    /* 
-     * 根据 OpenSBI 代码分析，需要传入非零的 counter_idx_mask。
-     * 使用方法二：不设 SKIP_MATCH，让 OpenSBI 自动查找空闲计数器。
-     * 已知有 18 个硬件计数器，掩码低 18 位全 1。
-     */
+    /* Step 1: 配置计数器 */
     ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_CFG_MATCH,
-                    0,                       /* counter_idx_base: 从 0 开始搜索 */
-                    0x3FFFFUL,               /* counter_idx_mask: 低18位全1，覆盖所有硬件计数器 */
-                    0,                       /* config_flags: 0，不使用 SKIP_MATCH */
-                    SBI_PMU_HW_CPU_CYCLES,    /* event_idx: CPU周期事件 */
-                    0, 0);
+                    0, 0x3FFFFUL, 0, SBI_PMU_HW_CPU_CYCLES, 0, 0);
     if (ret.error) {
         pr_err("RVSML-MLLB: CPU%d: sbi_ecall(CFG_MATCH) failed, error=%ld\n", cpu, ret.error);
         return;
@@ -102,13 +94,13 @@ static void enable_cycle_counter_on_cpu(void *info)
     counter_idx = ret.value;
     pr_info("RVSML-MLLB: CPU%d: got counter index %lu\n", cpu, counter_idx);
 
-    /* Step 2: 启动该计数器（从0开始） */
+    /* Step 2: 启动该计数器，使用非零掩码（只包含该计数器位） */
+    unsigned long start_mask = 1UL << counter_idx;
     ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_START,
-                    counter_idx,
-                    0,                                     /* counter_idx_mask: 单个计数器，置0 */
-                    SBI_PMU_START_FLAG_SET_INIT_VALUE,    /* 设置初始值 */
-                    0,                                     /* init_value: 从0开始 */
-                    0, 0);
+                    counter_idx,      /* counter_idx_base */
+                    start_mask,       /* counter_idx_mask: 非零 */
+                    0,                /* start_flags: 先不用设置初始值 */
+                    0, 0, 0);
     if (ret.error) {
         pr_err("RVSML-MLLB: CPU%d: sbi_ecall(START) failed, error=%ld\n", cpu, ret.error);
         return;
@@ -262,8 +254,8 @@ int jc_mlp_main(struct jc_lb_data *data)
         u64 total_count = atomic64_xchg(&forward_pass_count, 0);
         u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
         if (total_count == 1000) {
-            printk(KERN_INFO "=== jc_mlp (scheduler context, OpenSBI enabled) ===\n");
-            printk(KERN_INFO "Latest 1000 executions: Average cycle: %llu cycle\n",
+            printk(KERN_INFO "=== jc_mlp forward_pass average time per execution ===\n");
+            printk(KERN_INFO "Average time per execution: %llu cycle\n",
                    total_cycle / total_count);
             printk(KERN_INFO "===================================================\n");
         }
@@ -321,8 +313,8 @@ int jc_mlp_main(struct jc_lb_data *data)
         u64 total_count = atomic64_xchg(&forward_pass_count, 0);
         u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
         if (total_count == 1000) {
-            printk(KERN_INFO "=== jc_mlp (scheduler context, OpenSBI enabled) ===\n");
-            printk(KERN_INFO "Latest 1000 executions: Average cycle: %llu cycle\n",
+            printk(KERN_INFO "=== jc_mlp forward_pass average time per execution ===\n");
+            printk(KERN_INFO "Average time per execution: %llu cycle\n",
                    total_cycle / total_count);
             printk(KERN_INFO "===================================================\n");
         }
