@@ -84,12 +84,16 @@ static void enable_cycle_counter_on_cpu(void *info)
 
     pr_info("RVSML-MLLB: CPU%d: Attempting to enable cycle counter...\n", cpu);
 
-    /* Step 1: 直接使用计数器 0（硬件 cycle 计数器），跳过匹配 */
+    /* 
+     * 根据 OpenSBI 代码分析，需要传入非零的 counter_idx_mask。
+     * 使用方法二：不设 SKIP_MATCH，让 OpenSBI 自动查找空闲计数器。
+     * 已知有 18 个硬件计数器，掩码低 18 位全 1。
+     */
     ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_CFG_MATCH,
-                    0,                              /* counter_idx_base: 使用计数器 0 */
-                    0,                              /* counter_idx_mask: 0，忽略掩码 */
-                    SBI_PMU_CFG_FLAG_SKIP_MATCH,    /* config_flags: 跳过匹配，直接使用 base */
-                    SBI_PMU_HW_CPU_CYCLES,          /* event_idx: CPU周期事件 */
+                    0,                       /* counter_idx_base: 从 0 开始搜索 */
+                    0x3FFFFUL,               /* counter_idx_mask: 低18位全1，覆盖所有硬件计数器 */
+                    0,                       /* config_flags: 0，不使用 SKIP_MATCH */
+                    SBI_PMU_HW_CPU_CYCLES,    /* event_idx: CPU周期事件 */
                     0, 0);
     if (ret.error) {
         pr_err("RVSML-MLLB: CPU%d: sbi_ecall(CFG_MATCH) failed, error=%ld\n", cpu, ret.error);
