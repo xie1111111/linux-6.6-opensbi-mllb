@@ -1,17 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0
 #include <linux/kernel.h>
 #include <linux/syscalls.h>
 #include <linux/init.h>
 #include <linux/ktime.h>
 #include <linux/printk.h>
-#include <linux/slab.h>  // 引入 kmalloc/kfree 头文件
+#include <linux/slab.h>
 #include <linux/types.h>
 #include <linux/atomic.h>
-#include <linux/compiler.h> // 引入 READ_ONCE/WRITE_ONCE
+#include <linux/compiler.h>
+#include <linux/smp.h>               /* 新增：用于 smp_call_function_single */
+#include <linux/cpuhotplug.h>         /* 新增：用于 CPU hotplug 框架 */
 #include <asm/io.h>
 #include <asm/page.h>
 #include <asm/sbi.h>
 #include "jc_sbi_ml.h"
-
 #include "jc_mlp.h"
 
 // 添加全局变量记录forward_pass的统计信息
@@ -20,8 +22,6 @@ static atomic64_t forward_pass_total_cycle = ATOMIC64_INIT(0);
 
 static inline unsigned long long rdcycle_read(void) {
     unsigned long long cycles;
-    
-    // 直接使用rdcycle指令
     asm volatile ("rdcycle %0" : "=r" (cycles));
     return cycles;
 }
@@ -34,14 +34,14 @@ static struct ml_shared_mem {
     Tensor t_B1;
     Tensor t_W2;
     Tensor t_B2;
-}ml_shared;
+} ml_shared;
 
 static int ml_shared_inited = 0;
-//static DEFINE_SPINLOCK(ml_lock);
 
 int is_jc_sched = 0;
 EXPORT_SYMBOL(is_jc_sched);
 
+/* 原有的权重数据（保持原样） */
 dtype w1[] = {
     ftod(0.565644),  ftod(0.384824), ftod(-0.042528), ftod(-0.264426),  ftod(0.472312), ftod(-0.282259), ftod(-0.014167), ftod(-0.528233),  ftod(0.622656), ftod(-0.373769),
     ftod(0.287381),  ftod(1.005889),  ftod(0.181242), ftod(-1.291967),  ftod(1.100194), ftod(-0.772200), ftod(-0.235354), ftod(-0.829178),  ftod(0.248697),  ftod(1.168082),
@@ -68,6 +68,59 @@ dtype w2[] = { ftod(-0.409050), ftod(-0.578690), ftod(-0.446989), ftod(0.361227)
 
 dtype b2[] = { ftod(0.405319) };
 
+/* ---------- 新增：per-CPU 标志和启用函数 ---------- */
+static DEFINE_PER_CPU(bool, cycle_counter_enabled);
+
+static void enable_cycle_counter_on_cpu(void *info)
+{
+    struct sbiret ret;
+    unsigned long counter_idx;
+
+    if (__this_cpu_read(cycle_counter_enabled))
+        return;
+
+    pr_info("RVSML-MLLB: Enabling cycle counter on CPU%d...\n", smp_processor_id());
+
+    /* Step 1: 配置一个计数器来监控 CPU 周期事件 */
+    ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_CFG_MATCH,
+                    0,                  /* counter_idx_base: 从第一个计数器开始搜索 */
+                    -1UL,                /* counter_idx_mask: 搜索所有计数器 */
+                    0,                   /* config_flags: 无特殊配置 */
+                    SBI_PMU_HW_CPU_CYCLES, /* event_idx: CPU周期事件 */
+                    0,                   /* event_data: 无额外数据 */
+                    0);
+    if (ret.error) {
+        pr_err("RVSML-MLLB: CPU%d failed to configure cycle counter: %ld\n",
+               smp_processor_id(), ret.error);
+        return;
+    }
+    counter_idx = ret.value;
+
+    /* Step 2: 启动该计数器（从0开始） */
+    ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_START,
+                    counter_idx,
+                    0,                            /* counter_idx_mask: 单个计数器，置0 */
+                    SBI_PMU_START_FLAG_SET_INIT_VALUE, /* 设置初始值 */
+                    0,                            /* init_value: 从0开始 */
+                    0, 0);
+    if (ret.error) {
+        pr_err("RVSML-MLLB: CPU%d failed to start cycle counter: %ld\n",
+               smp_processor_id(), ret.error);
+        return;
+    }
+
+    __this_cpu_write(cycle_counter_enabled, true);
+    pr_info("RVSML-MLLB: CPU%d cycle counter enabled successfully.\n", smp_processor_id());
+}
+
+/* CPU hotplug 回调：每个 CPU 上线时调用启用函数 */
+static int sched_pmu_cpu_online(unsigned int cpu)
+{
+    smp_call_function_single(cpu, enable_cycle_counter_on_cpu, NULL, 1);
+    return 0;
+}
+/* ---------- 新增结束 ---------- */
+
 // 初始化共享内存
 static int jc_mlp_sched_init(void)
 {
@@ -88,135 +141,77 @@ static int jc_mlp_sched_init(void)
     
     WRITE_ONCE(ml_shared_inited, 1);
     pr_info("RVSML-MLLB: Shared memory initialized\n");
+
+    /* 注意：这里不再调用 on_each_cpu，启用工作交给 hotplug 回调完成 */
     return 0;
 }
 
 // forward_pass函数（作为内核组件）
 static int forward_pass(dtype *input_data) {
     struct sbiret ret;
-    dtype *o1;              // 第一层输出定点数格式
-    dtype *o2;               // 第二层输出定点数格式
-    Tensor *input;           // 改为 Tensor 指针，动态分配
-    Tensor *out1;            // 改为 Tensor 指针，动态分配
-    Tensor *out2;            // 改为 Tensor 指针，动态分配
+    dtype *o1;
+    dtype *o2;
+    Tensor *input;
+    Tensor *out1;
+    Tensor *out2;
     
-    // 动态分配 o1、o2 数据缓冲区（内核线性地址，独立内存，无共享）
     o1 = kmalloc(sizeof(dtype) * 10, GFP_ATOMIC);
     o2 = kmalloc(sizeof(dtype) * 1, GFP_ATOMIC);
-    
-    // 动态分配 Tensor 结构体内存（内核线性地址，合法可__pa()转换）
     input = kmalloc(sizeof(Tensor), GFP_ATOMIC);
     out1 = kmalloc(sizeof(Tensor), GFP_ATOMIC);
     out2 = kmalloc(sizeof(Tensor), GFP_ATOMIC);
     
-    // 检查所有分配结果，任一失败则释放所有已分配内存
     if (!o1 || !o2 || !input || !out1 || !out2) {
-        pr_err("RVSML-MLLB: kmalloc o1/o2 or Tensor failed (out of memory)\n");
-        // kfree(NULL) 安全，直接按顺序释放所有资源
-        kfree(input);
-        kfree(out1);
-        kfree(out2);
-        kfree(o1);
-        kfree(o2);
+        pr_err("RVSML-MLLB: kmalloc failed\n");
+        kfree(input); kfree(out1); kfree(out2); kfree(o1); kfree(o2);
         return -1;
     }
     
-    // 确保共享内存已初始化
     if (jc_mlp_sched_init() != 0) {
         pr_err("RVSML-MLLB: jc_mlp_sched_init failed\n");
-        // 异常分支：释放所有动态分配内存，避免泄漏
-        kfree(input);
-        kfree(out1);
-        kfree(out2);
-        kfree(o1);
-        kfree(o2);
+        kfree(input); kfree(out1); kfree(out2); kfree(o1); kfree(o2);
         return -1;
     }
     
-    // 初始化 Tensor 结构体（解引用指针，适配原 create_tensor4d 函数）
-    create_tensor4d(*input, __pa(input_data), 1, 1, NR_FEAT, 1);  // [1, 1, 15, 1]
-    create_tensor4d(*out1, __pa(o1), 1, 1, 10, 1);            // [1, 1, 10, 1]
-    create_tensor4d(*out2, __pa(o2), 1, 1, 1, 1);             // [1, 1, 1, 1]
+    create_tensor4d(*input, __pa(input_data), 1, 1, NR_FEAT, 1);
+    create_tensor4d(*out1, __pa(o1), 1, 1, 10, 1);
+    create_tensor4d(*out2, __pa(o2), 1, 1, 1, 1);
     
-    // 3. 执行MLP推理
     pr_debug("RVSML-MLLB: Forward pass via SBI starting...\n");
     
-    // 日志打印：适配 Tensor 指针（-> 访问成员）
-    //pr_err("input的地址:%p\n", &(input->shape));
-    //pr_err("input的行:%d\n", input->shape[1]);
-    //pr_err("input的列:%d\n", input->shape[2]);
-    
-    // Layer 1: Matmul（直接传递 Tensor 指针，无需 & 取地址）
     ret = matmul(out1, input, &ml_shared.t_W1);
     if (ret.error) {
         pr_err("RVSML-MLLB: matmul (layer 1) failed: %ld\n", ret.error);
-        kfree(input);
-        kfree(out1);
-        kfree(out2);
-        kfree(o1);
-        kfree(o2);
-        return -1;
+        goto fail;
     }
-
-    // Layer 2: Add Bias
     ret = tensor_add(out1, out1, &ml_shared.t_B1);
     if (ret.error) {
         pr_err("RVSML-MLLB: tensor_add (layer 1 bias) failed: %ld\n", ret.error);
-        kfree(input);
-        kfree(out1);
-        kfree(out2);
-        kfree(o1);
-        kfree(o2);
-        return -1;
+        goto fail;
     }
-
-    // Layer 3: ReLU
-    ret = tensor_relu(out1,out1);
+    ret = tensor_relu(out1, out1);
     if (ret.error) {
         pr_err("RVSML-MLLB: tensor_relu (layer 1) failed: %ld\n", ret.error);
-        kfree(input);
-        kfree(out1);
-        kfree(out2);
-        kfree(o1);
-        kfree(o2);
-        return -1;
+        goto fail;
     }
-
-    // Layer 4: Matmul
     ret = matmul(out2, out1, &ml_shared.t_W2);
     if (ret.error) {
         pr_err("RVSML-MLLB: matmul (layer 4) failed: %ld\n", ret.error);
-        kfree(input);
-        kfree(out1);
-        kfree(out2);
-        kfree(o1);
-        kfree(o2);
-        return -1;
+        goto fail;
     }
-
-    // Layer 5: Add Bias
     ret = tensor_add(out2, out2, &ml_shared.t_B2);
     if (ret.error) {
         pr_err("RVSML-MLLB: tensor_add (layer 5 bias) failed: %ld\n", ret.error);
-        kfree(input);
-        kfree(out1);
-        kfree(out2);
-        kfree(o1);
-        kfree(o2);
-        return -1;
+        goto fail;
     }
     
-    // 5. 获取最终结果 (定点数格式)
     dtype final_output = o2[0];
-
-    // 7. 释放所有动态分配的内存（Tensor 指针 + 数据缓冲区）
-    kfree(input);
-    kfree(out1);
-    kfree(out2);
-    kfree(o1);
-    kfree(o2);
-    
+    kfree(input); kfree(out1); kfree(out2); kfree(o1); kfree(o2);
     return final_output > ftod(0.5) ? 1 : 0;
+
+fail:
+    kfree(input); kfree(out1); kfree(out2); kfree(o1); kfree(o2);
+    return -1;
 }
 
 // 保持原有的jc_mlp_main函数，仅修改forward_pass调用
@@ -225,16 +220,13 @@ int jc_mlp_main(struct jc_lb_data *data)
 {
     int output;
     dtype *input;
-    //dtype input[NR_FEAT];
     dtype delta_faults;
     unsigned long long start_cycle, end_cycle;
     unsigned long long elapsed_cycle;
 
-    // 1. 动态分配 input（内核线性地址，GFP_ATOMIC 适合内核态非中断上下文）
-    // 每个调用分配一块独立内存，无共享
     input = kmalloc(sizeof(dtype) * NR_FEAT, GFP_ATOMIC);
-    if (!input) {  // 必做：检查分配是否失败，避免空指针访问
-        pr_err("RVSML-MLLB: kmalloc input failed (out of memory)\n");
+    if (!input) {
+        pr_err("RVSML-MLLB: kmalloc input failed\n");
         return -1;
     }
     
@@ -243,7 +235,6 @@ int jc_mlp_main(struct jc_lb_data *data)
     else
         delta_faults = itodtype(data->delta_faults);
 
-    // 准备输入数据
     input[0] = itodtype(data->src_non_pref);
     input[1] = itodtype(data->delta_hot);
     input[2] = itodtype(data->cpu_idle);
@@ -260,29 +251,19 @@ int jc_mlp_main(struct jc_lb_data *data)
     input[13] = itodtype(data->extra_fails);
     input[14] = itodtype(data->buddy_hot);
 
-    // 记录开始CPU周期数
-    start_cycle = rdcycle_read(); 
-    
-    // 调用forward_pass
+    start_cycle = rdcycle_read();
     output = forward_pass(input);
-
-    // 记录结束CPU周期数并计算运行所需周期数
-    end_cycle = rdcycle_read();;
+    end_cycle = rdcycle_read();
     elapsed_cycle = end_cycle - start_cycle;
     
     kfree(input);
 
-    // 更新统计信息
     atomic64_inc(&forward_pass_count);
     atomic64_add(elapsed_cycle, &forward_pass_total_cycle);
     
-    // 每1000次打印统计，然后重置数据（避免值过大）
     if (atomic64_read(&forward_pass_count) % 1000 == 0) {
-        // 原子交换：读取当前值，并将原子变量重置为 0（无锁安全）
         u64 total_count = atomic64_xchg(&forward_pass_count, 0);
         u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
-
-        // 这里判断 total_count 是否为 1000（避免多核并发时，多次触发打印）
         if (total_count == 1000) {
             printk(KERN_INFO "=== jc_mlp (scheduler context, OpenSBI enabled) ===\n");
             printk(KERN_INFO "Latest 1000 executions: Average cycle: %llu cycle\n",
@@ -298,16 +279,13 @@ int jc_mlp_main(struct jc_lb_data *data)
 {
     int output;
     dtype *input;
-    //dtype input[NR_FEAT];
     dtype delta_faults;
     unsigned long long start_cycle, end_cycle;
     unsigned long long elapsed_cycle;
 
-    // 1. 动态分配 input（内核线性地址，GFP_ATOMIC 适合内核态非中断上下文）
-    // 每个调用分配一块独立内存，无共享
     input = kmalloc(sizeof(dtype) * NR_FEAT, GFP_ATOMIC);
-    if (!input) {  // 必做：检查分配是否失败，避免空指针访问
-        pr_err("RVSML-MLLB: kmalloc input failed (out of memory)\n");
+    if (!input) {
+        pr_err("RVSML-MLLB: kmalloc input failed\n");
         return -1;
     }
     
@@ -316,7 +294,6 @@ int jc_mlp_main(struct jc_lb_data *data)
     else
         delta_faults = (dtype)data->delta_faults;
 
-    // 准备输入数据
     input[0] = (dtype)data->src_non_pref;
     input[1] = (dtype)data->delta_hot;
     input[2] = (dtype)data->cpu_idle;
@@ -333,28 +310,19 @@ int jc_mlp_main(struct jc_lb_data *data)
     input[13] = (dtype)data->extra_fails;
     input[14] = (dtype)data->buddy_hot;
 
-    // 记录开始时间
     start_cycle = rdcycle_read();
-    
-    // 调用forward_pass
     output = forward_pass(input);
-
-    // 记录结束时间并计算耗时
     end_cycle = rdcycle_read();
     elapsed_cycle = end_cycle - start_cycle;
 
     kfree(input);
-    // 更新统计信息
+
     atomic64_inc(&forward_pass_count);
     atomic64_add(elapsed_cycle, &forward_pass_total_cycle);
     
-    // 每1000次打印统计，然后重置数据（避免值过大）
     if (atomic64_read(&forward_pass_count) % 1000 == 0) {
-        // 原子交换：读取当前值，并将原子变量重置为 0（无锁安全）
         u64 total_count = atomic64_xchg(&forward_pass_count, 0);
         u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
-
-        // 这里判断 total_count 是否为 1000（避免多核并发时，多次触发打印）
         if (total_count == 1000) {
             printk(KERN_INFO "=== jc_mlp (scheduler context, OpenSBI enabled) ===\n");
             printk(KERN_INFO "Latest 1000 executions: Average cycle: %llu cycle\n",
@@ -366,3 +334,23 @@ int jc_mlp_main(struct jc_lb_data *data)
     return output;
 }
 #endif
+
+/* ---------- 新增 initcall 注册 hotplug 回调 ---------- */
+static int __init jc_mlp_initcall(void)
+{
+    int ret;
+
+    /* 可选：提前初始化共享内存，但 jc_mlp_sched_init 会被第一次调用时执行，也可在此主动调用确保 */
+    jc_mlp_sched_init();
+
+    ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN,
+                            "sched/jc_mlp:online",
+                            sched_pmu_cpu_online,
+                            NULL);
+    if (ret < 0)
+        pr_err("RVSML-MLLB: Failed to register CPU hotplug callback\n");
+
+    return 0;
+}
+core_initcall(jc_mlp_initcall);
+/* ---------- 新增结束 ---------- */
