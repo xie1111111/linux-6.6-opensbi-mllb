@@ -251,6 +251,317 @@ typedef unsigned int u32 ;
 
 #include <riscv_vector.h>
 #include "rvv_test.h"
+/*
+void main(unsigned int a0, unsigned int a1) {
+    dtype input[NR_FEAT] = {
+        ftod(1),ftod(0),ftod(0),ftod(0),ftod(1),ftod(0),ftod(0),ftod(0),ftod(0),ftod(0.008),ftod(0.009000000000000001),ftod(0),ftod(0.0),ftod(0),ftod(0)
+    };      // 定点数格式
+    dtype output;
+    dtype o1[10];              // 第一层输出定点数格式
+    dtype o2[1];
+    char str[20]; // 假设数字最多20位
+    struct sbiret ret;
+    // test_matmul1();
+    create_tensor4d(t_input, input, 1, 1, NR_FEAT, 1);
+    create_tensor4d(W1, w1, 1, NR_FEAT, 10, 1);
+    create_tensor4d(B1, b1, 1, 1, 10, 1);
+    create_tensor4d(out1, o1, 1, 1, 10, 1);
+    create_tensor4d(W2, w2, 1, 10, 1, 1);
+    create_tensor4d(B2, b2, 1, 1, 1, 1);
+    create_tensor4d(out2, o2, 1, 1, 1, 1);
+    //print_k((&out1)->data);
+    //print_tensor_data(&out1, "answer");
+    unsigned long start_cycle, end_cycle, diff_cycle;
+    unsigned long cycle_all;
+    int i;
+    for(i=0;i<1000;i++){
+        asm volatile("rdcycle %0" : "=r"(start_cycle));
+        ret = matmul(&out1,&t_input,&W1,1);
+        ret = tensor_add(&out1, &out1, &B1,1);
+        ret = tensor_relu(&out1, &out1,1);
+        ret = matmul(&out2, &out1, &W2,1);
+        ret = tensor_add(&out2, &out2, &B2,1);
+        asm volatile("rdcycle %0" : "=r"(end_cycle));
+        cycle_all += end_cycle - start_cycle;
+        if((i+1)%500==0){
+            puts("end_cycle:");
+            print_dec_u64(end_cycle);
+            puts("\nstart_cycle:");
+            print_dec_u64(start_cycle);
+            puts("\n耗时:");
+            print_dec_u64(end_cycle-start_cycle);
+            puts("\n");
+        }
+    }
+    puts("cycle_all:");
+    print_dec_u64(cycle_all);
+    diff_cycle = cycle_all/1000;
+    puts("\nForward pass cycles (decimal)(opensbi): ");
+    print_dec_u64(diff_cycle);   // 十进制打印
+    puts("\n");
+    //print_tensor_data(&out2,"answer_finnal");
+    struct matrix input_mllb = {1, NR_FEAT, NULL};
+    struct matrix W1_mllb = {NR_FEAT, 10, w1};
+    struct matrix out1_mllb = {1, 10, o1};
+    struct matrix B1_mllb = {1, 10, b1};
+    struct matrix W2_mllb = {10, 1, w2};
+    struct matrix out2_mllb = {1, 1, o2};
+    struct matrix B2_mllb = {1, 1, b2};
+    
+    input_mllb.values=input;
+    unsigned long start_cycle_1, end_cycle_1, diff_cycle_1;
+    asm volatile("rdcycle %0" : "=r"(start_cycle_1));
+    matmul_mllb(&input_mllb, &W1_mllb, &out1_mllb);
+
+    matadd(&out1_mllb, &B1_mllb, &out1_mllb);
+
+    ReLU(&out1_mllb);
+
+    matmul_mllb(&out1_mllb, &W2_mllb, &out2_mllb);
+
+    matadd(&out2_mllb, &B2_mllb, &out2_mllb);
+
+    asm volatile("rdcycle %0" : "=r"(end_cycle_1));
+    diff_cycle_1 = end_cycle_1 - start_cycle_1;
+    puts("Forward pass cycles (decimal)(MLLB): ");
+    print_dec_u64(diff_cycle_1);   // 十进制打印
+    puts("\n");
+    unsigned long cycle1,cycle2,cycle3,cycle4,cycle5,cycle6;
+    asm volatile("rdcycle %0" : "=r"(cycle1));
+    matmul_mllb(&input_mllb, &W1_mllb, &out1_mllb);
+    asm volatile("rdcycle %0" : "=r"(cycle2));
+    matadd(&out1_mllb, &B1_mllb, &out1_mllb);
+    asm volatile("rdcycle %0" : "=r"(cycle3));
+    ReLU(&out1_mllb);
+    asm volatile("rdcycle %0" : "=r"(cycle4));
+    matmul_mllb(&out1_mllb, &W2_mllb, &out2_mllb);
+    asm volatile("rdcycle %0" : "=r"(cycle5));
+    matadd(&out2_mllb, &B2_mllb, &out2_mllb);
+    asm volatile("rdcycle %0" : "=r"(cycle6));
+    puts("纯mllb每一步运行耗时:\n");
+    puts("第一步[1,15]×[15,10]矩阵乘法运行耗时:");
+    print_dec_u64(cycle2-cycle1);
+    puts("\n第二步偏置运行耗时:");
+    print_dec_u64(cycle3-cycle2);
+    puts("\n第三步Relu激活运行耗时:");
+    print_dec_u64(cycle4-cycle3);
+    puts("\n第四步[1,10]×[10,1]矩阵乘法运行耗时:");
+    print_dec_u64(cycle5-cycle4);
+    puts("\n第五步偏置运行耗时:");
+    print_dec_u64(cycle6-cycle5);
+    puts("\n");
+    shutdown();
+}
+*/
+/*
+unsigned long mllb_only(
+    struct matrix input, struct matrix W1, struct matrix B1, struct matrix W2,
+    struct matrix B2,struct matrix out1, struct matrix out2){
+    unsigned long start_cycle, end_cycle, diff_cycle;
+    asm volatile("rdcycle %0" : "=r"(start_cycle));
+    matmul_mllb(&input, &W1, &out1);
+    matadd(&out1, &B1, &out1);
+    ReLU(&out1);
+    matmul_mllb(&out1, &W2, &out2);
+    matadd(&out2, &B2, &out2);
+    asm volatile("rdcycle %0" : "=r"(end_cycle));
+    diff_cycle = end_cycle - start_cycle;
+    return diff_cycle;
+}
+
+unsigned long mllb_based_on_opensbi(Tensor input, Tensor W1, Tensor B1, Tensor W2, Tensor B2,Tensor out1, Tensor out2){
+    struct sbiret ret;
+    unsigned long start_cycle, end_cycle, diff_cycle;
+    asm volatile("rdcycle %0" : "=r"(start_cycle));
+    ret = matmul(&out1,&input,&W1,1);
+    ret = tensor_add(&out1, &out1, &B1,1);
+    ret = tensor_relu(&out1, &out1,1);
+    ret = matmul(&out2, &out1, &W2,1);
+    ret = tensor_add(&out2, &out2, &B2,1);
+    asm volatile("rdcycle %0" : "=r"(end_cycle));
+    diff_cycle = end_cycle - start_cycle;
+    return diff_cycle;
+}
+
+void mllb_opensbi_each_step(Tensor input, Tensor W1, Tensor B1, Tensor W2, Tensor B2,Tensor out1, Tensor out2,unsigned long *cycle_all){
+    struct sbiret ret;
+    unsigned long cycle_1,cycle_2,cycle_3,cycle_4,cycle_5,cycle_6;
+    asm volatile("rdcycle %0" : "=r"(cycle_1));
+    ret = matmul(&out1,&input,&W1,1);
+    asm volatile("rdcycle %0" : "=r"(cycle_2));
+    ret = tensor_add(&out1, &out1, &B1,1);
+    asm volatile("rdcycle %0" : "=r"(cycle_3));
+    ret = tensor_relu(&out1, &out1,1);
+    asm volatile("rdcycle %0" : "=r"(cycle_4));
+    ret = matmul(&out2, &out1, &W2,1);
+    asm volatile("rdcycle %0" : "=r"(cycle_5));
+    ret = tensor_add(&out2, &out2, &B2,1);
+    asm volatile("rdcycle %0" : "=r"(cycle_6));
+    cycle_all[0] += cycle_2-cycle_1;
+    cycle_all[1] += cycle_3-cycle_2;
+    cycle_all[2] += cycle_4-cycle_3;
+    cycle_all[3] += cycle_5-cycle_4;
+    cycle_all[4] += cycle_6-cycle_5;
+}
+
+void mllb_only_each_step(
+    struct matrix input, struct matrix W1, struct matrix B1, struct matrix W2,
+    struct matrix B2,struct matrix out1, struct matrix out2,unsigned long *cycle_all){
+    unsigned long cycle_1,cycle_2,cycle_3,cycle_4,cycle_5,cycle_6;
+    asm volatile("rdcycle %0" : "=r"(cycle_1));
+    matmul_mllb(&input, &W1, &out1);
+    asm volatile("rdcycle %0" : "=r"(cycle_2));
+    matadd(&out1, &B1, &out1);
+    asm volatile("rdcycle %0" : "=r"(cycle_3));
+    ReLU(&out1);
+    asm volatile("rdcycle %0" : "=r"(cycle_4));
+    matmul_mllb(&out1, &W2, &out2);
+    asm volatile("rdcycle %0" : "=r"(cycle_5));
+    matadd(&out2, &B2, &out2);
+    asm volatile("rdcycle %0" : "=r"(cycle_6));
+    cycle_all[0] += cycle_2-cycle_1;
+    cycle_all[1] += cycle_3-cycle_2;
+    cycle_all[2] += cycle_4-cycle_3;
+    cycle_all[3] += cycle_5-cycle_4;
+    cycle_all[4] += cycle_6-cycle_5;
+}
+
+void main(unsigned int a0, unsigned int a1) {
+    dtype input[NR_FEAT] = {
+        ftod(1),ftod(0),ftod(0),ftod(0),ftod(1),ftod(0),ftod(0),ftod(0),ftod(0),ftod(0.008),ftod(0.009000000000000001),ftod(0),ftod(0.0),ftod(0),ftod(0)
+    };      // 定点数格式
+    dtype output;
+    dtype o1[10];              // 第一层输出定点数格式
+    dtype o2[1];
+    int i;
+    unsigned long cycle_average;
+    create_tensor4d(t_input, input, 1, 1, NR_FEAT, 1);
+    create_tensor4d(W1, w1, 1, NR_FEAT, 10, 1);
+    create_tensor4d(B1, b1, 1, 1, 10, 1);
+    create_tensor4d(out1, o1, 1, 1, 10, 1);
+    create_tensor4d(W2, w2, 1, 10, 1, 1);
+    create_tensor4d(B2, b2, 1, 1, 1, 1);
+    create_tensor4d(out2, o2, 1, 1, 1, 1);
+    puts("\n========================================\n");
+    puts("测试1:测试基于opensbi的mllb平均耗时\n");
+    unsigned long cycle_all=0;
+    for(i=0;i<1000;i++){
+        cycle_all+=mllb_based_on_opensbi(t_input,W1,B1,W2,B2,out1,out2);
+    }
+    cycle_average=(cycle_all/1000);
+    puts("1000次基于opensbi的mllb的平均耗时为:");
+    print_dec_u64(cycle_average);
+    puts("\n测试1结束");
+    puts("\n========================================\n");
+    puts("\n========================================\n");
+    struct matrix input_mllb = {1, NR_FEAT, NULL};
+    struct matrix W1_mllb = {NR_FEAT, 10, w1};
+    struct matrix out1_mllb = {1, 10, o1};
+    struct matrix B1_mllb = {1, 10, b1};
+    struct matrix W2_mllb = {10, 1, w2};
+    struct matrix out2_mllb = {1, 1, o2};
+    struct matrix B2_mllb = {1, 1, b2};
+    input_mllb.values=input;
+    puts("测试2:纯mllb平均耗时\n");
+    cycle_all=0;
+    for(i=0;i<1000;i++){
+        cycle_all+=mllb_only(input_mllb,W1_mllb,B1_mllb,W2_mllb,B2_mllb,out1_mllb,out2_mllb);
+    }
+    cycle_average=(cycle_all/1000);
+    puts("1000次纯mllb的平均耗时为:");
+    print_dec_u64(cycle_average);
+    puts("\n测试2结束");
+    puts("\n========================================\n");
+    puts("\n========================================\n");
+    puts("测试3:基于opensbi的mllb中每一步的平均开销\n");
+    unsigned long cycle_group_all[5];
+    unsigned long cycle_group_average[5];
+    for(i=0;i<5;i++){
+        cycle_group_all[i]=0;
+    }
+    for(i=0;i<1000;i++){
+        mllb_opensbi_each_step(t_input,W1,B1,W2,B2,out1,out2,cycle_group_all);
+    }
+    for(i=0;i<5;i++){
+        cycle_group_average[i]=(cycle_group_all[i]/1000);
+        cycle_group_all[i]=0;
+    }
+    puts("第一步:矩阵乘法的开销:");
+    print_dec_u64(cycle_group_average[0]);
+    puts("\n第二步:偏置的开销:");
+    print_dec_u64(cycle_group_average[1]);
+    puts("\n第三步:relu激活开销:");
+    print_dec_u64(cycle_group_average[2]);
+    puts("\n第四步:矩阵乘法开销:");
+    print_dec_u64(cycle_group_average[3]);
+    puts("\n第五步:偏置的开销:");
+    print_dec_u64(cycle_group_average[4]);
+    puts("\n总开销:");
+    print_dec_u64(cycle_group_average[0]+cycle_group_average[1]+cycle_group_average[2]+cycle_group_average[3]+cycle_group_average[4]);
+    puts("\n测试3结束");
+    puts("\n========================================\n");
+    puts("\n========================================\n");
+    puts("测试4:mllb中每一步的平均开销\n");
+    for(i=0;i<1000;i++){
+        mllb_only_each_step(input_mllb,W1_mllb,B1_mllb,W2_mllb,B2_mllb,out1_mllb,out2_mllb,cycle_group_all);
+    }
+    for(i=0;i<5;i++){
+        cycle_group_average[i]=(cycle_group_all[i]/1000);
+    }
+    puts("第一步:矩阵乘法的开销:");
+    print_dec_u64(cycle_group_average[0]);
+    puts("\n第二步:偏置的开销:");
+    print_dec_u64(cycle_group_average[1]);
+    puts("\n第三步:relu激活开销:");
+    print_dec_u64(cycle_group_average[2]);
+    puts("\n第四步:矩阵乘法开销:");
+    print_dec_u64(cycle_group_average[3]);
+    puts("\n第五步:偏置的开销:");
+    print_dec_u64(cycle_group_average[4]);
+    puts("\n总开销:");
+    print_dec_u64(cycle_group_average[0]+cycle_group_average[1]+cycle_group_average[2]+cycle_group_average[3]+cycle_group_average[4]);
+    puts("\n测试4结束");
+    puts("\n========================================\n");
+    puts("\n========================================\n");
+    puts("测试5:与测试1的对比实验\n");
+    puts("注:测试1是将测时mlp封装到函数中,然后调用函数,测试5是直接在main中测时mlp\n");
+    struct sbiret ret;
+    cycle_all=0;
+    for(i=0;i<1000;i++){
+        unsigned long start_cycle, end_cycle, diff_cycle;
+        asm volatile("rdcycle %0" : "=r"(start_cycle));
+        ret = matmul(&out1,&t_input,&W1,1);
+        ret = tensor_add(&out1, &out1, &B1,1);
+        ret = tensor_relu(&out1, &out1,1);
+        ret = matmul(&out2, &out1, &W2,1);
+        ret = tensor_add(&out2, &out2, &B2,1);
+        asm volatile("rdcycle %0" : "=r"(end_cycle));
+        cycle_all+=end_cycle-start_cycle;
+    }
+    cycle_average=(cycle_all/1000);
+    puts("与测试1的对比试验平均耗时为:");
+    print_dec_u64(cycle_average);
+    puts("\n测试5结束");
+    puts("\n========================================\n");
+    puts("\n========================================\n");
+    puts("测试6:与测试5的对比实验\n");
+    puts("注:测试5是for循环1000次的平均耗时,而测试6是执行1次的耗时\n");
+    unsigned long start_cycle, end_cycle, diff_cycle;
+    asm volatile("rdcycle %0" : "=r"(start_cycle));
+    ret = matmul(&out1,&t_input,&W1,1);
+    ret = tensor_add(&out1, &out1, &B1,1);
+    ret = tensor_relu(&out1, &out1,1);
+    ret = matmul(&out2, &out1, &W2,1);
+    ret = tensor_add(&out2, &out2, &B2,1);
+    asm volatile("rdcycle %0" : "=r"(end_cycle));
+    diff_cycle = end_cycle - start_cycle;
+    puts("与测试5对比实验耗时为:");
+    print_dec_u64(diff_cycle);
+    puts("\n测试6结束");
+    puts("\n========================================\n");
+    shutdown();
+}*/
+
 void main(unsigned int a0, unsigned int a1) {
     u32 cur_halt=a0;
     u32 dtb_address_baes=a1;
@@ -329,7 +640,6 @@ void main(unsigned int a0, unsigned int a1) {
 
     matadd(&out2_mllb, &B2_mllb, &out2_mllb);
 
-    output = m1d(&out2_mllb, 0);
     asm volatile("rdcycle %0" : "=r"(end_cycle_1));
     diff_cycle_1 = end_cycle_1 - start_cycle_1;
     puts("Forward pass cycles (decimal)(MLLB): ");
