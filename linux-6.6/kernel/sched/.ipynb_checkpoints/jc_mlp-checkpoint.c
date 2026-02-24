@@ -8,8 +8,8 @@
 #include <linux/types.h>
 #include <linux/atomic.h>
 #include <linux/compiler.h>
-#include <linux/smp.h>               /* 新增：用于 smp_call_function_single */
-#include <linux/cpuhotplug.h>         /* 新增：用于 CPU hotplug 框架 */
+#include <linux/smp.h>
+#include <linux/cpuhotplug.h>
 #include <asm/io.h>
 #include <asm/page.h>
 #include <asm/sbi.h>
@@ -41,7 +41,7 @@ static int ml_shared_inited = 0;
 int is_jc_sched = 0;
 EXPORT_SYMBOL(is_jc_sched);
 
-/* 原有的权重数据（保持原样） */
+/* 权重数据（保持不变） */
 dtype w1[] = {
     ftod(0.565644),  ftod(0.384824), ftod(-0.042528), ftod(-0.264426),  ftod(0.472312), ftod(-0.282259), ftod(-0.014167), ftod(-0.528233),  ftod(0.622656), ftod(-0.373769),
     ftod(0.287381),  ftod(1.005889),  ftod(0.181242), ftod(-1.291967),  ftod(1.100194), ftod(-0.772200), ftod(-0.235354), ftod(-0.829178),  ftod(0.248697),  ftod(1.168082),
@@ -68,49 +68,50 @@ dtype w2[] = { ftod(-0.409050), ftod(-0.578690), ftod(-0.446989), ftod(0.361227)
 
 dtype b2[] = { ftod(0.405319) };
 
-/* ---------- 新增：per-CPU 标志和启用函数 ---------- */
+/* ---------- per-CPU 标志和启用函数 ---------- */
 static DEFINE_PER_CPU(bool, cycle_counter_enabled);
 
 static void enable_cycle_counter_on_cpu(void *info)
 {
     struct sbiret ret;
     unsigned long counter_idx;
+    int cpu = smp_processor_id();
 
-    if (__this_cpu_read(cycle_counter_enabled))
+    if (__this_cpu_read(cycle_counter_enabled)) {
+        pr_info("RVSML-MLLB: CPU%d already enabled, skipping\n", cpu);
         return;
+    }
 
-    pr_info("RVSML-MLLB: Enabling cycle counter on CPU%d...\n", smp_processor_id());
+    pr_info("RVSML-MLLB: CPU%d: Attempting to enable cycle counter...\n", cpu);
 
-    /* Step 1: 配置一个计数器来监控 CPU 周期事件 */
+    /* Step 1: 直接使用计数器 0（硬件 cycle 计数器），跳过匹配 */
     ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_CFG_MATCH,
-                    0,                  /* counter_idx_base: 从第一个计数器开始搜索 */
-                    -1UL,                /* counter_idx_mask: 搜索所有计数器 */
-                    0,                   /* config_flags: 无特殊配置 */
-                    SBI_PMU_HW_CPU_CYCLES, /* event_idx: CPU周期事件 */
-                    0,                   /* event_data: 无额外数据 */
-                    0);
+                    0,                              /* counter_idx_base: 使用计数器 0 */
+                    0,                              /* counter_idx_mask: 0，忽略掩码 */
+                    SBI_PMU_CFG_FLAG_SKIP_MATCH,    /* config_flags: 跳过匹配，直接使用 base */
+                    SBI_PMU_HW_CPU_CYCLES,          /* event_idx: CPU周期事件 */
+                    0, 0);
     if (ret.error) {
-        pr_err("RVSML-MLLB: CPU%d failed to configure cycle counter: %ld\n",
-               smp_processor_id(), ret.error);
+        pr_err("RVSML-MLLB: CPU%d: sbi_ecall(CFG_MATCH) failed, error=%ld\n", cpu, ret.error);
         return;
     }
     counter_idx = ret.value;
+    pr_info("RVSML-MLLB: CPU%d: got counter index %lu\n", cpu, counter_idx);
 
     /* Step 2: 启动该计数器（从0开始） */
     ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_START,
                     counter_idx,
-                    0,                            /* counter_idx_mask: 单个计数器，置0 */
-                    SBI_PMU_START_FLAG_SET_INIT_VALUE, /* 设置初始值 */
-                    0,                            /* init_value: 从0开始 */
+                    0,                                     /* counter_idx_mask: 单个计数器，置0 */
+                    SBI_PMU_START_FLAG_SET_INIT_VALUE,    /* 设置初始值 */
+                    0,                                     /* init_value: 从0开始 */
                     0, 0);
     if (ret.error) {
-        pr_err("RVSML-MLLB: CPU%d failed to start cycle counter: %ld\n",
-               smp_processor_id(), ret.error);
+        pr_err("RVSML-MLLB: CPU%d: sbi_ecall(START) failed, error=%ld\n", cpu, ret.error);
         return;
     }
 
     __this_cpu_write(cycle_counter_enabled, true);
-    pr_info("RVSML-MLLB: CPU%d cycle counter enabled successfully.\n", smp_processor_id());
+    pr_info("RVSML-MLLB: CPU%d: cycle counter enabled successfully.\n", cpu);
 }
 
 /* CPU hotplug 回调：每个 CPU 上线时调用启用函数 */
@@ -119,7 +120,7 @@ static int sched_pmu_cpu_online(unsigned int cpu)
     smp_call_function_single(cpu, enable_cycle_counter_on_cpu, NULL, 1);
     return 0;
 }
-/* ---------- 新增结束 ---------- */
+/* ---------- 结束 ---------- */
 
 // 初始化共享内存
 static int jc_mlp_sched_init(void)
@@ -128,21 +129,13 @@ static int jc_mlp_sched_init(void)
         return 0;
     }
     memset(&ml_shared, 0, sizeof(struct ml_shared_mem));
-    // 初始化Tensor结构体 (使用虚拟地址，shape格式: [N, H, W, C])
-    // 所有tensor都指向定点数数组
-    create_tensor4d(ml_shared.t_W1,
-            __pa(w1), 1, NR_FEAT, 10, 1);                 // [1, 15, 10, 1] - 15x10矩阵
-    create_tensor4d(ml_shared.t_B1,
-            __pa(b1), 1, 1, 10, 1);                       // [1, 1, 10, 1] - 1x10向量
-    create_tensor4d(ml_shared.t_W2,
-            __pa(w2), 1, 10, 1, 1);                       // [1, 10, 1, 1] - 10x1矩阵
-    create_tensor4d(ml_shared.t_B2,
-            __pa(b2), 1, 1, 1, 1);                        // [1, 1, 1, 1] - 1x1标量
+    create_tensor4d(ml_shared.t_W1, __pa(w1), 1, NR_FEAT, 10, 1);
+    create_tensor4d(ml_shared.t_B1, __pa(b1), 1, 1, 10, 1);
+    create_tensor4d(ml_shared.t_W2, __pa(w2), 1, 10, 1, 1);
+    create_tensor4d(ml_shared.t_B2, __pa(b2), 1, 1, 1, 1);
     
     WRITE_ONCE(ml_shared_inited, 1);
     pr_info("RVSML-MLLB: Shared memory initialized\n");
-
-    /* 注意：这里不再调用 on_each_cpu，启用工作交给 hotplug 回调完成 */
     return 0;
 }
 
@@ -335,12 +328,11 @@ int jc_mlp_main(struct jc_lb_data *data)
 }
 #endif
 
-/* ---------- 新增 initcall 注册 hotplug 回调 ---------- */
+/* ---------- initcall 注册 hotplug 回调 ---------- */
 static int __init jc_mlp_initcall(void)
 {
     int ret;
 
-    /* 可选：提前初始化共享内存，但 jc_mlp_sched_init 会被第一次调用时执行，也可在此主动调用确保 */
     jc_mlp_sched_init();
 
     ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN,
@@ -348,9 +340,11 @@ static int __init jc_mlp_initcall(void)
                             sched_pmu_cpu_online,
                             NULL);
     if (ret < 0)
-        pr_err("RVSML-MLLB: Failed to register CPU hotplug callback\n");
+        pr_err("RVSML-MLLB: Failed to register CPU hotplug callback, error=%d\n", ret);
+    else
+        pr_info("RVSML-MLLB: CPU hotplug callback registered (state=%d)\n", ret);
 
     return 0;
 }
 core_initcall(jc_mlp_initcall);
-/* ---------- 新增结束 ---------- */
+/* ---------- 结束 ---------- */
