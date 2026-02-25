@@ -8,8 +8,6 @@
 #include <linux/types.h>
 #include <linux/atomic.h>
 #include <linux/compiler.h>
-#include <linux/smp.h>
-#include <linux/cpuhotplug.h>
 #include <asm/io.h>
 #include <asm/page.h>
 #include <asm/sbi.h>
@@ -67,49 +65,6 @@ dtype b1[] = {
 dtype w2[] = { ftod(-0.409050), ftod(-0.578690), ftod(-0.446989), ftod(0.361227), ftod(-0.401546), ftod(0.258594), ftod(0.760240), ftod(0.524665), ftod(-0.385637), ftod(-0.721390),};
 
 dtype b2[] = { ftod(0.405319) };
-
-/* ---------- per-CPU 标志和启用函数 ---------- */
-static DEFINE_PER_CPU(bool, cycle_counter_enabled);
-
-static void enable_cycle_counter_on_cpu(void *info)
-{
-    struct sbiret ret;
-    unsigned long counter_idx;
-    int cpu = smp_processor_id();
-
-    if (__this_cpu_read(cycle_counter_enabled)) {
-        pr_info("RVSML-MLLB: CPU%d already enabled, skipping\n", cpu);
-        return;
-    }
-
-    pr_info("RVSML-MLLB: CPU%d: Attempting to enable cycle counter...\n", cpu);
-
-    /* 配置计数器，让 OpenSBI 分配一个计数器监控 CPU 周期事件 */
-    ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_CFG_MATCH,
-                    0, 0x3FFFFUL, 0, SBI_PMU_HW_CPU_CYCLES, 0, 0);
-    if (ret.error) {
-        pr_err("RVSML-MLLB: CPU%d: sbi_ecall(CFG_MATCH) failed, error=%ld\n", cpu, ret.error);
-        return;
-    }
-    counter_idx = ret.value;
-    pr_info("RVSML-MLLB: CPU%d: got counter index %lu\n", cpu, counter_idx);
-
-    /* 假设计数器已自动启动，不再显式调用 START */
-    __this_cpu_write(cycle_counter_enabled, true);
-    pr_info("RVSML-MLLB: CPU%d: cycle counter enabled (assumed started).\n", cpu);
-
-    /* 验证：读取一次 rdcycle 值 */
-    unsigned long long val = rdcycle_read();
-    pr_info("RVSML-MLLB: CPU%d: rdcycle = %llu\n", cpu, val);
-}
-
-/* CPU hotplug 回调：每个 CPU 上线时调用启用函数 */
-static int sched_pmu_cpu_online(unsigned int cpu)
-{
-    smp_call_function_single(cpu, enable_cycle_counter_on_cpu, NULL, 1);
-    return 0;
-}
-/* ---------- 结束 ---------- */
 
 // 初始化共享内存
 static int jc_mlp_sched_init(void)
@@ -196,7 +151,7 @@ fail:
     return -1;
 }
 
-// 保持原有的jc_mlp_main函数，仅修改forward_pass调用
+// jc_mlp_main函数（定点数版本）
 #ifdef CONFIG_JC_SCHED_FXDPT
 int jc_mlp_main(struct jc_lb_data *data)
 {
@@ -237,26 +192,30 @@ int jc_mlp_main(struct jc_lb_data *data)
     output = forward_pass(input);
     end_cycle = rdcycle_read();
     elapsed_cycle = end_cycle - start_cycle;
+
+    // 每次调用都打印详细信息
+    printk("RVSML-MLLB: CPU%d elapsed=%llu (start=%llu end=%llu) output=%d\n",
+           smp_processor_id(), elapsed_cycle, start_cycle, end_cycle, output);
+
+    // 暂时注释掉统计和清零，只保留打印
+    // atomic64_inc(&forward_pass_count);
+    // atomic64_add(elapsed_cycle, &forward_pass_total_cycle);
+    // if (atomic64_read(&forward_pass_count) % 1000 == 0) {
+    //     u64 total_count = atomic64_xchg(&forward_pass_count, 0);
+    //     u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
+    //     if (total_count == 1000) {
+    //         printk(KERN_INFO "=== jc_mlp forward_pass average time per execution ===\n");
+    //         printk(KERN_INFO "Average time per execution: %llu cycle\n",
+    //                total_cycle / total_count);
+    //         printk(KERN_INFO "===================================================\n");
+    //     }
+    // }
     
     kfree(input);
-
-    atomic64_inc(&forward_pass_count);
-    atomic64_add(elapsed_cycle, &forward_pass_total_cycle);
-    
-    if (atomic64_read(&forward_pass_count) % 1000 == 0) {
-        u64 total_count = atomic64_xchg(&forward_pass_count, 0);
-        u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
-        if (total_count == 1000) {
-            printk(KERN_INFO "=== jc_mlp forward_pass average time per execution ===\n");
-            printk(KERN_INFO "Average time per execution: %llu cycle\n",
-                   total_cycle / total_count);
-            printk(KERN_INFO "===================================================\n");
-        }
-    }
-    
     return output;
 }
 #else
+// jc_mlp_main函数（非定点数版本）
 int jc_mlp_main(struct jc_lb_data *data)
 {
     int output;
@@ -297,43 +256,25 @@ int jc_mlp_main(struct jc_lb_data *data)
     end_cycle = rdcycle_read();
     elapsed_cycle = end_cycle - start_cycle;
 
-    kfree(input);
+    // 每次调用都打印详细信息
+    printk("RVSML-MLLB: CPU%d elapsed=%llu (start=%llu end=%llu) output=%d\n",
+           smp_processor_id(), elapsed_cycle, start_cycle, end_cycle, output);
 
-    atomic64_inc(&forward_pass_count);
-    atomic64_add(elapsed_cycle, &forward_pass_total_cycle);
+    // 暂时注释掉统计和清零，只保留打印
+    // atomic64_inc(&forward_pass_count);
+    // atomic64_add(elapsed_cycle, &forward_pass_total_cycle);
+    // if (atomic64_read(&forward_pass_count) % 1000 == 0) {
+    //     u64 total_count = atomic64_xchg(&forward_pass_count, 0);
+    //     u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
+    //     if (total_count == 1000) {
+    //         printk(KERN_INFO "=== jc_mlp forward_pass average time per execution ===\n");
+    //         printk(KERN_INFO "Average time per execution: %llu cycle\n",
+    //                total_cycle / total_count);
+    //         printk(KERN_INFO "===================================================\n");
+    //     }
+    // }
     
-    if (atomic64_read(&forward_pass_count) % 1000 == 0) {
-        u64 total_count = atomic64_xchg(&forward_pass_count, 0);
-        u64 total_cycle = atomic64_xchg(&forward_pass_total_cycle, 0);
-        if (total_count == 1000) {
-            printk(KERN_INFO "=== jc_mlp forward_pass average time per execution ===\n");
-            printk(KERN_INFO "Average time per execution: %llu cycle\n",
-                   total_cycle / total_count);
-            printk(KERN_INFO "===================================================\n");
-        }
-    }
-    
+    kfree(input);
     return output;
 }
 #endif
-
-/* ---------- initcall 注册 hotplug 回调 ---------- */
-static int __init jc_mlp_initcall(void)
-{
-    int ret;
-
-    jc_mlp_sched_init();
-
-    ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN,
-                            "sched/jc_mlp:online",
-                            sched_pmu_cpu_online,
-                            NULL);
-    if (ret < 0)
-        pr_err("RVSML-MLLB: Failed to register CPU hotplug callback, error=%d\n", ret);
-    else
-        pr_info("RVSML-MLLB: CPU hotplug callback registered (state=%d)\n", ret);
-
-    return 0;
-}
-core_initcall(jc_mlp_initcall);
-/* ---------- 结束 ---------- */
