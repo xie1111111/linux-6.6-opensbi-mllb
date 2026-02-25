@@ -520,12 +520,8 @@ static void pmu_sbi_reset_scounteren(void *arg)
 	struct perf_event *event = (struct perf_event *)arg;
 
 	if (event->hw.idx != -1)
-        /*
 		csr_write(CSR_SCOUNTEREN,
 			  csr_read(CSR_SCOUNTEREN) & ~(1 << pmu_sbi_csr_index(event)));
-        */
-        csr_write(CSR_SCOUNTEREN,
-			  (csr_read(CSR_SCOUNTEREN) & ~(1 << pmu_sbi_csr_index(event))) | 0x1);
 }
 
 static void pmu_sbi_ctr_start(struct perf_event *event, u64 ival)
@@ -774,11 +770,7 @@ static int pmu_sbi_starting_cpu(unsigned int cpu, struct hlist_node *node)
 	if (sysctl_perf_user_access == SYSCTL_LEGACY)
 		csr_write(CSR_SCOUNTEREN, 0x7);
 	else
-        /*
 		csr_write(CSR_SCOUNTEREN, 0x2);
-        */
-        /*保持打开cycle计数器*/
-        csr_write(CSR_SCOUNTEREN, 0x3);
 
 	/* Stop all the counters so that they can be enabled from perf */
 	pmu_sbi_stop_all(pmu);
@@ -801,9 +793,7 @@ static int pmu_sbi_dying_cpu(unsigned int cpu, struct hlist_node *node)
 	}
 
 	/* Disable all counters access for user mode now */
-	//csr_write(CSR_SCOUNTEREN, 0x0);
-    /*保持cycle计数器可访问*/
-    csr_write(CSR_SCOUNTEREN, 0x1);
+	csr_write(CSR_SCOUNTEREN, 0x0);
 
 	return 0;
 }
