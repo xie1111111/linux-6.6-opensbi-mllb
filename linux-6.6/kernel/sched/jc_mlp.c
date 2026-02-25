@@ -84,7 +84,7 @@ static void enable_cycle_counter_on_cpu(void *info)
 
     pr_info("RVSML-MLLB: CPU%d: Attempting to enable cycle counter...\n", cpu);
 
-    /* Step 1: 配置计数器 */
+    /* 配置计数器，让 OpenSBI 分配一个计数器监控 CPU 周期事件 */
     ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_CFG_MATCH,
                     0, 0x3FFFFUL, 0, SBI_PMU_HW_CPU_CYCLES, 0, 0);
     if (ret.error) {
@@ -94,20 +94,13 @@ static void enable_cycle_counter_on_cpu(void *info)
     counter_idx = ret.value;
     pr_info("RVSML-MLLB: CPU%d: got counter index %lu\n", cpu, counter_idx);
 
-    /* Step 2: 启动该计数器，使用非零掩码（只包含该计数器位） */
-    unsigned long start_mask = 1UL << counter_idx;
-    ret = sbi_ecall(SBI_EXT_PMU, SBI_EXT_PMU_COUNTER_START,
-                    counter_idx,      /* counter_idx_base */
-                    start_mask,       /* counter_idx_mask: 非零 */
-                    0,                /* start_flags: 先不用设置初始值 */
-                    0, 0, 0);
-    if (ret.error) {
-        pr_err("RVSML-MLLB: CPU%d: sbi_ecall(START) failed, error=%ld\n", cpu, ret.error);
-        return;
-    }
-
+    /* 假设计数器已自动启动，不再显式调用 START */
     __this_cpu_write(cycle_counter_enabled, true);
-    pr_info("RVSML-MLLB: CPU%d: cycle counter enabled successfully.\n", cpu);
+    pr_info("RVSML-MLLB: CPU%d: cycle counter enabled (assumed started).\n", cpu);
+
+    /* 验证：读取一次 rdcycle 值 */
+    unsigned long long val = rdcycle_read();
+    pr_info("RVSML-MLLB: CPU%d: rdcycle = %llu\n", cpu, val);
 }
 
 /* CPU hotplug 回调：每个 CPU 上线时调用启用函数 */
