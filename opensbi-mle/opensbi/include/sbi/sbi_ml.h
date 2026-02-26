@@ -114,6 +114,17 @@ typedef struct {
     int pad_w;
 } pool_params_t;
 
+typedef struct {
+    Tensor *input;      // 输入
+    Tensor *W1;         // 第一层权重
+    Tensor *B1;         // 第一层偏置
+    Tensor *out1;       // 第一层输出
+    Tensor *W2;         // 第二层权重
+    Tensor *B2;         // 第二层偏置
+    Tensor *out2;       // 最终输出
+    int use_fxdpt;      // 是否使用定点数
+} mlp_forward_params_t;
+
 // 定点数核心定义
 typedef int fxdpt_t;       // 等价于int32_t（RV32 M-mode）
 typedef signed long fxdpt_ext;// 等价于int64_t（RV32 M-mode）

@@ -305,6 +305,17 @@ static inline int matmul(Tensor *dst, Tensor *src1, Tensor *src2)
     return 0;
 }
 */
+
+static int mlp(mlp_forward_params_t *params){
+    struct sbiret ret;
+    ret = matmul(params->out1, params->input, params->W1, params->use_fxdpt);
+    ret = tensor_add(params->out1, params->out1, params->B1, params->use_fxdpt);
+    ret = relu(params->out1, params->out1, params->use_fxdpt);
+    ret = matmul(params->out2, params->out1, params->W2, params->use_fxdpt);
+    ret = tensor_add(params->out2, params->out2, params->B2, params->use_fxdpt);
+    return SBI_SUCCESS;
+}
+
 static int conv2d(Tensor *dst, Tensor *src, Tensor *weight, sbi_ml_conv_params_t *conv_params)
 {
     // Extract tensor dimensions
@@ -1091,7 +1102,12 @@ static int sbi_ecall_ml_handler(unsigned long extid, unsigned long funcid,
             ret = basic_rnn(dst, src, params);
             break;
         }
-        case SBI_EXT_ML_NOP:{
+        case SBI_EXT_ML_MLP: {
+            mlp_forward_params_t *params = (mlp_forward_params_t *)regs->a0;
+            ret = mlp(params);
+            break;
+        }
+        case SBI_EXT_ML_NOP: {
             ret = SBI_SUCCESS;
             break;
         }

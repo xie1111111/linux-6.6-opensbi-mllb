@@ -102,6 +102,24 @@ static inline void sbi_ecall_console_puts(const char *str)
 		  sbi_strlen(str), (unsigned long)str, 0, 0, 0, 0);
 }
 
+static inline struct sbiret mlp(
+    Tensor *input, Tensor *W1, Tensor *B1, Tensor *out1,
+    Tensor *W2, Tensor *B2, Tensor *out2, int use_fxdpt)
+{
+    mlp_forward_params_t params = {
+        .input = input,
+        .W1 = W1,
+        .B1 = B1,
+        .out1 = out1,
+        .W2 = W2,
+        .B2 = B2,
+        .out2 = out2,
+        .use_fxdpt = use_fxdpt
+    };
+    return sbi_ecall(SBI_EXT_ML, SBI_EXT_ML_MLP,
+                     (unsigned long)&params, 0, 0, 0, 0, 0);
+
+}
 static inline struct sbiret ecall_nop(void){
     return sbi_ecall(0,0,0,0,0,0,0,0);
 }

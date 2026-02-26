@@ -251,7 +251,6 @@ typedef unsigned int u32 ;
 
 #include <riscv_vector.h>
 #include "rvv_test.h"
-/*
 void main(unsigned int a0, unsigned int a1) {
     dtype input[NR_FEAT] = {
         ftod(1),ftod(0),ftod(0),ftod(0),ftod(1),ftod(0),ftod(0),ftod(0),ftod(0),ftod(0.008),ftod(0.009000000000000001),ftod(0),ftod(0.0),ftod(0),ftod(0)
@@ -274,31 +273,18 @@ void main(unsigned int a0, unsigned int a1) {
     unsigned long start_cycle, end_cycle, diff_cycle;
     unsigned long cycle_all;
     int i;
+    puts("========================================\n");
+    puts("1000次平均耗时对比:");
     for(i=0;i<1000;i++){
         asm volatile("rdcycle %0" : "=r"(start_cycle));
-        ret = matmul(&out1,&t_input,&W1,1);
-        ret = tensor_add(&out1, &out1, &B1,1);
-        ret = tensor_relu(&out1, &out1,1);
-        ret = matmul(&out2, &out1, &W2,1);
-        ret = tensor_add(&out2, &out2, &B2,1);
+        ret = mlp(&t_input,&W1,&B1,&out1,&W2,&B2,&out2,1);
         asm volatile("rdcycle %0" : "=r"(end_cycle));
         cycle_all += end_cycle - start_cycle;
-        if((i+1)%500==0){
-            puts("end_cycle:");
-            print_dec_u64(end_cycle);
-            puts("\nstart_cycle:");
-            print_dec_u64(start_cycle);
-            puts("\n耗时:");
-            print_dec_u64(end_cycle-start_cycle);
-            puts("\n");
-        }
     }
-    puts("cycle_all:");
-    print_dec_u64(cycle_all);
     diff_cycle = cycle_all/1000;
-    puts("\nForward pass cycles (decimal)(opensbi): ");
+    puts("\n基于opensbi的mllb: ");
     print_dec_u64(diff_cycle);   // 十进制打印
-    puts("\n");
+    puts(" cycle");
     //print_tensor_data(&out2,"answer_finnal");
     struct matrix input_mllb = {1, NR_FEAT, NULL};
     struct matrix W1_mllb = {NR_FEAT, 10, w1};
@@ -310,50 +296,128 @@ void main(unsigned int a0, unsigned int a1) {
     
     input_mllb.values=input;
     unsigned long start_cycle_1, end_cycle_1, diff_cycle_1;
-    asm volatile("rdcycle %0" : "=r"(start_cycle_1));
-    matmul_mllb(&input_mllb, &W1_mllb, &out1_mllb);
+    cycle_all = 0;
+    for(i=0;i<1000;i++){
+        asm volatile("rdcycle %0" : "=r"(start_cycle_1));
+        matmul_mllb(&input_mllb, &W1_mllb, &out1_mllb);
 
-    matadd(&out1_mllb, &B1_mllb, &out1_mllb);
+        matadd(&out1_mllb, &B1_mllb, &out1_mllb);
 
-    ReLU(&out1_mllb);
+        ReLU(&out1_mllb);
 
-    matmul_mllb(&out1_mllb, &W2_mllb, &out2_mllb);
+        matmul_mllb(&out1_mllb, &W2_mllb, &out2_mllb);
 
-    matadd(&out2_mllb, &B2_mllb, &out2_mllb);
+        matadd(&out2_mllb, &B2_mllb, &out2_mllb);
 
-    asm volatile("rdcycle %0" : "=r"(end_cycle_1));
-    diff_cycle_1 = end_cycle_1 - start_cycle_1;
-    puts("Forward pass cycles (decimal)(MLLB): ");
+        asm volatile("rdcycle %0" : "=r"(end_cycle_1));
+        cycle_all+=end_cycle_1 - start_cycle_1;
+    }
+    diff_cycle_1 = cycle_all/1000;
+    puts("\n纯mllb: ");
     print_dec_u64(diff_cycle_1);   // 十进制打印
-    puts("\n");
-    unsigned long cycle1,cycle2,cycle3,cycle4,cycle5,cycle6;
-    asm volatile("rdcycle %0" : "=r"(cycle1));
-    matmul_mllb(&input_mllb, &W1_mllb, &out1_mllb);
-    asm volatile("rdcycle %0" : "=r"(cycle2));
-    matadd(&out1_mllb, &B1_mllb, &out1_mllb);
-    asm volatile("rdcycle %0" : "=r"(cycle3));
-    ReLU(&out1_mllb);
-    asm volatile("rdcycle %0" : "=r"(cycle4));
-    matmul_mllb(&out1_mllb, &W2_mllb, &out2_mllb);
-    asm volatile("rdcycle %0" : "=r"(cycle5));
-    matadd(&out2_mllb, &B2_mllb, &out2_mllb);
-    asm volatile("rdcycle %0" : "=r"(cycle6));
-    puts("纯mllb每一步运行耗时:\n");
-    puts("第一步[1,15]×[15,10]矩阵乘法运行耗时:");
-    print_dec_u64(cycle2-cycle1);
-    puts("\n第二步偏置运行耗时:");
-    print_dec_u64(cycle3-cycle2);
-    puts("\n第三步Relu激活运行耗时:");
-    print_dec_u64(cycle4-cycle3);
-    puts("\n第四步[1,10]×[10,1]矩阵乘法运行耗时:");
-    print_dec_u64(cycle5-cycle4);
-    puts("\n第五步偏置运行耗时:");
-    print_dec_u64(cycle6-cycle5);
-    puts("\n");
+    puts("cycle\n");
+    puts("========================================\n");
+    shutdown();
+}
+
+/*
+//获得ecall指令耗时
+void main(unsigned int a0, unsigned int a1){
+    unsigned long start_cycle,end_cycle,diff_cycle,cycle_all=0;
+    struct sbiret ret;
+    for(int i=0;i<1000;i++){
+        asm volatile("rdcycle %0" : "=r"(start_cycle));
+        ret = ecall_nop();
+        asm volatile("rdcycle %0" : "=r"(end_cycle));
+        cycle_all += end_cycle - start_cycle;
+    }
+    diff_cycle = cycle_all/1000;
+    //puts("\n开始周期数:");
+    //print_dec_u64(start_cycle);
+    //puts("\n结束周期数:");
+    //print_dec_u64(end_cycle);
+    puts("\n========================================\n");
+    puts("ecall指令耗时为:");
+    print_dec_u64(diff_cycle);
+    puts("\n========================================\n");
+}*/
+/*
+//基于opensbi的mllb和原版mllb的耗时对比
+void main(unsigned int a0, unsigned int a1) {
+    dtype input[NR_FEAT] = {
+        ftod(1),ftod(0),ftod(0),ftod(0),ftod(1),ftod(0),ftod(0),ftod(0),ftod(0),ftod(0.008),ftod(0.009000000000000001),ftod(0),ftod(0.0),ftod(0),ftod(0)
+    };      // 定点数格式
+    dtype output;
+    dtype o1[10];              // 第一层输出定点数格式
+    dtype o2[1];
+    char str[20]; // 假设数字最多20位
+    struct sbiret ret;
+    // test_matmul1();
+    create_tensor4d(t_input, input, 1, 1, NR_FEAT, 1);
+    create_tensor4d(W1, w1, 1, NR_FEAT, 10, 1);
+    create_tensor4d(B1, b1, 1, 1, 10, 1);
+    create_tensor4d(out1, o1, 1, 1, 10, 1);
+    create_tensor4d(W2, w2, 1, 10, 1, 1);
+    create_tensor4d(B2, b2, 1, 1, 1, 1);
+    create_tensor4d(out2, o2, 1, 1, 1, 1);
+    //print_k((&out1)->data);
+    //print_tensor_data(&out1, "answer");
+    unsigned long start_cycle, end_cycle, diff_cycle;
+    unsigned long cycle_all;
+    int i;
+    puts("========================================\n");
+    puts("1000次平均耗时对比:");
+    for(i=0;i<1000;i++){
+        asm volatile("rdcycle %0" : "=r"(start_cycle));
+        ret = matmul(&out1,&t_input,&W1,1);
+        ret = tensor_add(&out1, &out1, &B1,1);
+        ret = tensor_relu(&out1, &out1,1);
+        ret = matmul(&out2, &out1, &W2,1);
+        ret = tensor_add(&out2, &out2, &B2,1);
+        asm volatile("rdcycle %0" : "=r"(end_cycle));
+        cycle_all += end_cycle - start_cycle;
+    }
+    diff_cycle = cycle_all/1000;
+    puts("\n基于opensbi的mllb: ");
+    print_dec_u64(diff_cycle);   // 十进制打印
+    puts(" cycle");
+    //print_tensor_data(&out2,"answer_finnal");
+    struct matrix input_mllb = {1, NR_FEAT, NULL};
+    struct matrix W1_mllb = {NR_FEAT, 10, w1};
+    struct matrix out1_mllb = {1, 10, o1};
+    struct matrix B1_mllb = {1, 10, b1};
+    struct matrix W2_mllb = {10, 1, w2};
+    struct matrix out2_mllb = {1, 1, o2};
+    struct matrix B2_mllb = {1, 1, b2};
+    
+    input_mllb.values=input;
+    unsigned long start_cycle_1, end_cycle_1, diff_cycle_1;
+    cycle_all = 0;
+    for(i=0;i<1000;i++){
+        asm volatile("rdcycle %0" : "=r"(start_cycle_1));
+        matmul_mllb(&input_mllb, &W1_mllb, &out1_mllb);
+
+        matadd(&out1_mllb, &B1_mllb, &out1_mllb);
+
+        ReLU(&out1_mllb);
+
+        matmul_mllb(&out1_mllb, &W2_mllb, &out2_mllb);
+
+        matadd(&out2_mllb, &B2_mllb, &out2_mllb);
+
+        asm volatile("rdcycle %0" : "=r"(end_cycle_1));
+        cycle_all+=end_cycle_1 - start_cycle_1;
+    }
+    diff_cycle_1 = cycle_all/1000;
+    puts("\n纯mllb: ");
+    print_dec_u64(diff_cycle_1);   // 十进制打印
+    puts("cycle\n");
+    puts("========================================\n");
     shutdown();
 }
 */
 /*
+//融合测试
 unsigned long mllb_only(
     struct matrix input, struct matrix W1, struct matrix B1, struct matrix W2,
     struct matrix B2,struct matrix out1, struct matrix out2){
@@ -561,7 +625,7 @@ void main(unsigned int a0, unsigned int a1) {
     puts("\n========================================\n");
     shutdown();
 }*/
-
+/*
 void main(unsigned int a0, unsigned int a1) {
     u32 cur_halt=a0;
     u32 dtb_address_baes=a1;
@@ -648,4 +712,4 @@ void main(unsigned int a0, unsigned int a1) {
     #endif
     // clear();
     shutdown();
-}
+}*/
