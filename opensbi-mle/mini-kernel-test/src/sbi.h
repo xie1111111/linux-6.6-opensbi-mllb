@@ -102,6 +102,9 @@ static inline void sbi_ecall_console_puts(const char *str)
 		  sbi_strlen(str), (unsigned long)str, 0, 0, 0, 0);
 }
 
+static inline struct sbiret ecall_nop(void){
+    return sbi_ecall(0,0,0,0,0,0,0,0);
+}
 
 static inline struct sbiret sbi_ecall_ml_test(int a, int b)
 {

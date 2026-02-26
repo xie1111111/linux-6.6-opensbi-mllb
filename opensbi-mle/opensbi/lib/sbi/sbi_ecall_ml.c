@@ -1091,6 +1091,10 @@ static int sbi_ecall_ml_handler(unsigned long extid, unsigned long funcid,
             ret = basic_rnn(dst, src, params);
             break;
         }
+        case SBI_EXT_ML_NOP:{
+            ret = SBI_SUCCESS;
+            break;
+        }
 	}
     out->value = SBI_ML_SET_ERR(0, ret);
 	return 0;

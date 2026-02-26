@@ -61,6 +61,8 @@
 #define SBI_EXT_ML_PROPOSAL   0xF //Proposal
 #define SBI_EXT_ML_LSTM       0x10 //LSTM
 #define SBI_EXT_ML_BASICRNN   0x11 //BasicRNN、RNN
+#define SBI_EXT_ML_MLP        0x12//mllb
+#define SBI_EXT_ML_NOP        0x13//空操作
 /* SBI function IDs for BASE extension*/
 #define SBI_EXT_BASE_GET_SPEC_VERSION		0x0
 #define SBI_EXT_BASE_GET_IMP_ID			0x1
