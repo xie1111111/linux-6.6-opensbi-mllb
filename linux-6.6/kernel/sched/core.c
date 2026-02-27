@@ -9945,6 +9945,8 @@ void __init sched_init_smp(void)
 #ifdef CONFIG_JC_SCHED_PERF
     jc_rq_perf_init();
 #endif
+    // 初始化 JC MLP Perf 计数器
+    jc_mlp_perf_init_early();
     
 	sched_smp_initialized = true;
 }

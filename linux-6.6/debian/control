@@ -6,11 +6,11 @@ Rules-Requires-Root: no
 Build-Depends: bc, debhelper, rsync, kmod, cpio, bison, flex , , 
 Homepage: https://www.kernel.org/
 
-Package: linux-image-6.6.0-use-rdcycle
+Package: linux-image-6.6.0-use-perf
 Architecture: riscv64
-Description: Linux kernel, version 6.6.0-use-rdcycle
+Description: Linux kernel, version 6.6.0-use-perf
  This package contains the Linux kernel, modules and corresponding other
- files, version: 6.6.0-use-rdcycle.
+ files, version: 6.6.0-use-perf.
 
 Package: linux-libc-dev
 Section: devel
@@ -21,9 +21,9 @@ Description: Linux support headers for userspace development
  are used by the installed headers for GNU glibc and other system libraries.
 Multi-Arch: same
 
-Package: linux-headers-6.6.0-use-rdcycle
+Package: linux-headers-6.6.0-use-perf
 Architecture: riscv64
-Description: Linux kernel headers for 6.6.0-use-rdcycle on riscv64
- This package provides kernel header files for 6.6.0-use-rdcycle on riscv64
+Description: Linux kernel headers for 6.6.0-use-perf on riscv64
+ This package provides kernel header files for 6.6.0-use-perf on riscv64
  .
  This is useful for people who need to build external modules

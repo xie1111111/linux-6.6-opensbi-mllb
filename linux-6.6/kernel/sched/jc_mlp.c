@@ -10,6 +10,8 @@
 #include <linux/compiler.h>
 #include <asm/io.h>
 #include <asm/page.h>
+#include <linux/perf_event.h>
+#include <linux/percpu.h>
 #include <asm/sbi.h>
 #include "jc_sbi_ml.h"
 #include "jc_mlp.h"
@@ -18,11 +20,150 @@
 static atomic64_t forward_pass_count = ATOMIC64_INIT(0);
 static atomic64_t forward_pass_total_cycle = ATOMIC64_INIT(0);
 
-static inline unsigned long long rdcycle_read(void) {
-    unsigned long long cycles;
-    asm volatile ("rdcycle %0" : "=r" (cycles));
-    return cycles;
+// Per-CPU 的 perf event 指针
+static struct perf_event * __percpu *cycle_events;
+static int perf_initialized = 0;
+
+/**
+ * jc_mlp_perf_init - 初始化 perf cycle 计数器
+ * 
+ * 为每个 CPU 创建一个 PERF_COUNT_HW_CPU_CYCLES 事件
+ * 这个函数应该在系统启动时调用一次
+ */
+static int jc_mlp_perf_init(void)
+{
+    struct perf_event_attr attr = {
+        .type = PERF_TYPE_HARDWARE,
+        .config = PERF_COUNT_HW_CPU_CYCLES,
+        .size = sizeof(struct perf_event_attr),
+        .pinned = 1,
+        .disabled = 0,
+        .exclude_kernel = 0,
+        .exclude_hv = 0,
+        .exclude_idle = 0,
+    };
+    struct perf_event *event;
+    int cpu;
+    int ret;
+
+    if (perf_initialized) {
+        pr_warn("RVSML-MLLB: Perf already initialized\n");
+        return 0;
+    }
+
+    cycle_events = alloc_percpu(struct perf_event *);
+    if (!cycle_events) {
+        pr_err("RVSML-MLLB: Failed to allocate per-CPU perf events\n");
+        return -ENOMEM;
+    }
+
+    for_each_possible_cpu(cpu) {
+        event = perf_event_create_kernel_counter(&attr, cpu, NULL, NULL, NULL);
+        if (IS_ERR(event)) {
+            ret = PTR_ERR(event);
+            pr_err("RVSML-MLLB: Failed to create perf event on CPU%d: %d\n",
+                   cpu, ret);
+            
+            // 清理已创建的事件
+            int cleanup_cpu;
+            for_each_possible_cpu(cleanup_cpu) {
+                if (cleanup_cpu >= cpu)
+                    break;
+                event = *per_cpu_ptr(cycle_events, cleanup_cpu);
+                if (event && !IS_ERR(event)) {
+                    perf_event_disable(event);
+                    perf_event_release_kernel(event);
+                }
+            }
+            free_percpu(cycle_events);
+            cycle_events = NULL;
+            return ret;
+        }
+
+        *per_cpu_ptr(cycle_events, cpu) = event;
+        perf_event_enable(event);
+    }
+
+    perf_initialized = 1;
+    pr_info("RVSML-MLLB: Perf cycle counters initialized for all CPUs\n");
+    return 0;
 }
+
+/**
+ * jc_mlp_perf_init_early - 早期初始化包装函数
+ * 
+ * 供调度器初始化时调用
+ */
+void jc_mlp_perf_init_early(void)
+{
+    int ret = jc_mlp_perf_init();
+    if (ret) {
+        pr_warn("RVSML-MLLB: Early perf init failed: %d, will retry on first use\n", ret);
+    }
+}
+
+/**
+ * jc_mlp_perf_cleanup - 清理 perf cycle 计数器
+ */
+static void jc_mlp_perf_cleanup(void)
+{
+    struct perf_event *event;
+    int cpu;
+
+    if (!perf_initialized)
+        return;
+
+    if (!cycle_events)
+        return;
+
+    for_each_possible_cpu(cpu) {
+        event = *per_cpu_ptr(cycle_events, cpu);
+        if (event && !IS_ERR(event)) {
+            perf_event_disable(event);
+            perf_event_release_kernel(event);
+        }
+    }
+
+    free_percpu(cycle_events);
+    cycle_events = NULL;
+    perf_initialized = 0;
+    pr_info("RVSML-MLLB: Perf cycle counters cleaned up\n");
+}
+
+/**
+ * read_cycles_perf - 读取当前 CPU 的 cycle 计数
+ * 
+ * 使用 perf_event_read_local 读取当前 CPU 的 cycle 计数器
+ * 必须在禁用抢占的上下文中调用
+ */
+static inline u64 read_cycles_perf(void)
+{
+    struct perf_event *event;
+    u64 value = 0, enabled, running;
+    int cpu = smp_processor_id();
+
+    if (!perf_initialized) {
+        pr_warn_once("RVSML-MLLB: Perf not initialized, attempting init\n");
+        // 尝试初始化（只会执行一次）
+        jc_mlp_perf_init();
+        if (!perf_initialized)
+            return 0;
+    }
+
+    event = *per_cpu_ptr(cycle_events, cpu);
+    if (!event || IS_ERR(event)) {
+        pr_warn_once("RVSML-MLLB: Invalid perf event on CPU%d\n", cpu);
+        return 0;
+    }
+
+    if (perf_event_read_local(event, &value, &enabled, &running) != 0) {
+        pr_warn_once("RVSML-MLLB: Failed to read perf event on CPU%d\n", cpu);
+        return 0;
+    }
+
+    return value;
+}
+
 #define NR_FEAT     15
 #define ftod(F)     ftodtype(F)
 
@@ -188,9 +329,9 @@ int jc_mlp_main(struct jc_lb_data *data)
     input[13] = itodtype(data->extra_fails);
     input[14] = itodtype(data->buddy_hot);
 
-    start_cycle = rdcycle_read();
+    start_cycle = read_cycles_perf();
     output = forward_pass(input);
-    end_cycle = rdcycle_read();
+    end_cycle = read_cycles_perf();
     elapsed_cycle = end_cycle - start_cycle;
 
     // 每次调用都打印详细信息
@@ -251,9 +392,9 @@ int jc_mlp_main(struct jc_lb_data *data)
     input[13] = (dtype)data->extra_fails;
     input[14] = (dtype)data->buddy_hot;
 
-    start_cycle = rdcycle_read();
+    start_cycle = read_cycles_perf();
     output = forward_pass(input);
-    end_cycle = rdcycle_read();
+    end_cycle = read_cycles_perf();
     elapsed_cycle = end_cycle - start_cycle;
 
     // 每次调用都打印详细信息

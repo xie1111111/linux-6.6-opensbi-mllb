@@ -1,1 +1,1 @@
-#define UTS_RELEASE "6.6.0-use-rdcycle"
+#define UTS_RELEASE "6.6.0-use-perf"

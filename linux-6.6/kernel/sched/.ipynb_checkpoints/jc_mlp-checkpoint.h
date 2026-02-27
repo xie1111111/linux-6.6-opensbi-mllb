@@ -38,6 +38,8 @@ struct jc_lb_data {
 
 int jc_mlp_main(struct jc_lb_data *data);
 
+void jc_mlp_perf_init_early(void);
+
 #ifdef CONFIG_JC_SCHED_FXDPT
 typedef s32 fxdpt_t;
 typedef s64 fxdpt_ext;
